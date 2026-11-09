@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Classwork Video Portal · EN</title>
+  <link rel="stylesheet" href="assets/css/portal.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <nav class="lang-switch" aria-label="Language">
+        <a href="index-cn.html">中文</a>
+        <span class="current">English</span>
+      </nav>
+      <p class="kicker">Classwork Video Portal</p>
+      <h1 id="course-title">Loading course title…</h1>
+      <p class="meta-line" id="meta-line">Term · Instructor</p>
+      <p class="note" id="note-text">This portal shows group videos in this phase; website links come later.</p>
+    </div>
+  </header>
+
+  <main class="section">
+    <div class="wrap">
+      <h2 id="section-title">Group Work</h2>
+      <div id="works-grid" class="grid" aria-live="polite"></div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>CW-PORTAL-VIDEO-20261109-01 · Video-only phase · Public Pages / sharing require user approval</p>
+    </div>
+  </footer>
+
+  <div id="player-modal" class="modal" hidden>
+    <div id="player-backdrop" class="modal-backdrop" aria-hidden="true"></div>
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="player-title">
+      <div class="modal-head">
+        <div>
+          <h3 id="player-title">Video</h3>
+          <p class="modal-sub" id="player-sub"></p>
+        </div>
+        <button type="button" id="player-close" class="modal-close" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <video id="player-video" controls playsinline preload="metadata" hidden></video>
+        <div id="player-fail" class="fail-box" hidden></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/portal.js"></script>
+</body>
+</html>

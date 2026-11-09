@@ -1,0 +1,137 @@
+{
+  "meta": {
+    "course_zh": "（课程中文名 · 实现用占位，可后改）",
+    "course_en": "Course title placeholder",
+    "term_zh": "学期占位",
+    "term_en": "Term placeholder",
+    "instructor_zh": "任课教师占位",
+    "instructor_en": "Instructor placeholder",
+    "note_zh": "本门户本阶段展示各组视频作品；网页入口后续开放。Taste 试料卡视频为门户自备占位，方法论参考自 kuaizengji/taste。",
+    "note_en": "This portal shows group videos in this phase; website links come later. The Taste sample video is a portal-generated placeholder referencing the kuaizengji/taste methodology."
+  },
+  "groups": [
+    {
+      "id": "g01",
+      "slot": 1,
+      "name_zh": "Taste 试料组",
+      "name_en": "Taste sample group",
+      "title_zh": "试通样例视频（Taste 试料 · 门户自备占位）",
+      "title_en": "Sample demo video (Taste sample · portal placeholder)",
+      "cover": "assets/img/placeholder-cover.svg",
+      "video": {
+        "kind": "file",
+        "src": "media/samples/sample-demo.mp4"
+      },
+      "website_url": null,
+      "status": "ready"
+    },
+    {
+      "id": "g02",
+      "slot": 2,
+      "name_zh": "第 2 组",
+      "name_en": "Group 2",
+      "title_zh": "待提交",
+      "title_en": "Pending submission",
+      "cover": "assets/img/placeholder-cover.svg",
+      "video": { "kind": "file", "src": null },
+      "website_url": null,
+      "status": "empty"
+    },
+    {
+      "id": "g03",
+      "slot": 3,
+      "name_zh": "第 3 组",
+      "name_en": "Group 3",
+      "title_zh": "待提交",
+      "title_en": "Pending submission",
+      "cover": "assets/img/placeholder-cover.svg",
+      "video": { "kind": "file", "src": null },
+      "website_url": null,
+      "status": "empty"
+    },
+    {
+      "id": "g04",
+      "slot": 4,
+      "name_zh": "第 4 组",
+      "name_en": "Group 4",
+      "title_zh": "待提交",
+      "title_en": "Pending submission",
+      "cover": "assets/img/placeholder-cover.svg",
+      "video": { "kind": "file", "src": null },
+      "website_url": null,
+      "status": "empty"
+    },
+    {
+      "id": "g05",
+      "slot": 5,
+      "name_zh": "第 5 组",
+      "name_en": "Group 5",
+      "title_zh": "待提交",
+      "title_en": "Pending submission",
+      "cover": "assets/img/placeholder-cover.svg",
+      "video": { "kind": "file", "src": null },
+      "website_url": null,
+      "status": "empty"
+    },
+    {
+      "id": "g06",
+      "slot": 6,
+      "name_zh": "第 6 组",
+      "name_en": "Group 6",
+      "title_zh": "待提交",
+      "title_en": "Pending submission",
+      "cover": "assets/img/placeholder-cover.svg",
+      "video": { "kind": "file", "src": null },
+      "website_url": null,
+      "status": "empty"
+    },
+    {
+      "id": "g07",
+      "slot": 7,
+      "name_zh": "第 7 组",
+      "name_en": "Group 7",
+      "title_zh": "待提交",
+      "title_en": "Pending submission",
+      "cover": "assets/img/placeholder-cover.svg",
+      "video": { "kind": "file", "src": null },
+      "website_url": null,
+      "status": "empty"
+    },
+    {
+      "id": "g08",
+      "slot": 8,
+      "name_zh": "第 8 组",
+      "name_en": "Group 8",
+      "title_zh": "待提交",
+      "title_en": "Pending submission",
+      "cover": "assets/img/placeholder-cover.svg",
+      "video": { "kind": "file", "src": null },
+      "website_url": null,
+      "status": "empty"
+    },
+    {
+      "id": "g09",
+      "slot": 9,
+      "name_zh": "第 9 组",
+      "name_en": "Group 9",
+      "title_zh": "待提交",
+      "title_en": "Pending submission",
+      "cover": "assets/img/placeholder-cover.svg",
+      "video": { "kind": "file", "src": null },
+      "website_url": null,
+      "status": "empty"
+    },
+    {
+      "id": "g10",
+      "slot": 10,
+      "name_zh": "第 10 组",
+      "name_en": "Group 10",
+      "title_zh": "待提交",
+      "title_en": "Pending submission",
+      "cover": "assets/img/placeholder-cover.svg",
+      "video": { "kind": "file", "src": null },
+      "website_url": null,
+      "status": "empty"
+    }
+  ]
+}

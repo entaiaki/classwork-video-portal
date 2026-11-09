@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img" aria-label="placeholder cover">
+  <rect width="640" height="360" fill="#1a2332"/>
+  <rect x="24" y="24" width="592" height="312" fill="none" stroke="#c4a35a" stroke-width="2" opacity="0.55"/>
+  <circle cx="320" cy="160" r="36" fill="none" stroke="#c4a35a" stroke-width="2"/>
+  <polygon points="312,142 342,160 312,178" fill="#c4a35a"/>
+  <text x="320" y="230" text-anchor="middle" fill="#c9d2de" font-family="system-ui,sans-serif" font-size="18">Video cover placeholder</text>
+</svg>

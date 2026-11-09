@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>班作品视频门户 · 中文</title>
+  <link rel="stylesheet" href="assets/css/portal.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <nav class="lang-switch" aria-label="语言">
+        <span class="current">中文</span>
+        <a href="index.html">English</a>
+      </nav>
+      <p class="kicker">Classwork Video Portal</p>
+      <h1 id="course-title">课程标题加载中…</h1>
+      <p class="meta-line" id="meta-line">学期 · 教师</p>
+      <p class="note" id="note-text">本门户本阶段展示各组视频作品；网页入口后续开放。</p>
+    </div>
+  </header>
+
+  <main class="section">
+    <div class="wrap">
+      <h2 id="section-title">小组作品</h2>
+      <div id="works-grid" class="grid" aria-live="polite"></div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>CW-PORTAL-VIDEO-20261109-01 · 本阶段只挂视频 · 公开 Pages / 发群须用户批</p>
+    </div>
+  </footer>
+
+  <div id="player-modal" class="modal" hidden>
+    <div id="player-backdrop" class="modal-backdrop" aria-hidden="true"></div>
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="player-title">
+      <div class="modal-head">
+        <div>
+          <h3 id="player-title">视频</h3>
+          <p class="modal-sub" id="player-sub"></p>
+        </div>
+        <button type="button" id="player-close" class="modal-close" aria-label="关闭">×</button>
+      </div>
+      <div class="modal-body">
+        <video id="player-video" controls playsinline preload="metadata" hidden></video>
+        <div id="player-fail" class="fail-box" hidden></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/portal.js"></script>
+</body>
+</html>
