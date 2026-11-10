@@ -2,7 +2,9 @@
 
 **Ticket**: CW-PORTAL-VIDEO-20261109-01  
 **Phase**: video-only (website links reserved, not clickable)  
-**Primary demo page**: `index-cn.html`
+**Primary demo page**: `index-cn.html`  
+**Current shell (R5)**: 应用壳 + 作品索引 (App-shell + Work Index) — sticky site bar, work inspector, and a 10-slot work index with status filters. Local preview only; do not treat this as a public Pages update.
+
 
 ## Open locally
 
@@ -20,16 +22,16 @@ Then open:
 
 ### file:// notes
 
-You can open `index-cn.html` directly in a browser. Some browsers block `fetch("data/works.json")` under `file://`. If the grid shows a load-failure message, use the http.server method above (this is the official smoke path).
+You can open `index-cn.html` directly in a browser. Some browsers block `fetch("data/works.json")` under `file://`. If the page shows a load-failure message, use the http.server method above (this is the official smoke path).
 
 ## Data
 
-All cards are driven by `data/works.json`:
+The work index and inspector are driven by `data/works.json`:
 
 - `meta.*` — course / term / instructor / note (placeholders OK)
 - `groups[]` — exactly 10 slots (`slot` 1–10); `status`: `ready` | `empty` | `broken`
 - `video.kind`: `file` (relative path) or `url` (https)
-- `website_url`: **reserved only** this phase — UI shows grey 「网页入口 · 后续开放」 / “Website entry · coming later”, never a live outbound link
+- `website_url`: **reserved only** this phase — UI shows grey 「网页入口，后续开放」 / “Website entry, coming later”, never a live outbound link
 
 ## Replace the sample mp4
 

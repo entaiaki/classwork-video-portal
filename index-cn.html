@@ -3,35 +3,58 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>班作品视频门户 · 中文</title>
+  <title>班作品视频门户（中文）</title>
   <link rel="stylesheet" href="assets/css/portal.css" />
 </head>
 <body>
-  <header class="site-header">
-    <div class="wrap">
-      <nav class="lang-switch" aria-label="语言">
-        <span class="current">中文</span>
-        <a href="index.html">English</a>
-      </nav>
-      <p class="kicker">Classwork Video Portal</p>
-      <h1 id="course-title">课程标题加载中…</h1>
-      <p class="meta-line" id="meta-line">学期 · 教师</p>
-      <p class="note" id="note-text">本门户本阶段展示各组视频作品；网页入口后续开放。</p>
-    </div>
-  </header>
+  <div id="app-shell">
+    <header id="site-bar" class="site-bar">
+      <div class="wrap site-bar-inner">
+        <p id="site-brand"><span id="course-title">课程标题加载中…</span></p>
+        <p id="meta-line">学期 教师</p>
+        <nav id="site-nav">
+          <div class="lang-switch" aria-label="语言">
+            <span class="current">中</span>
+            <a href="index.html">EN</a>
+          </div>
+          <a class="nav-works" href="#work-index">作品</a>
+        </nav>
+      </div>
+    </header>
 
-  <main class="section">
-    <div class="wrap">
-      <h2 id="section-title">小组作品</h2>
-      <div id="works-grid" class="grid" aria-live="polite"></div>
-    </div>
-  </main>
+    <main id="workspace">
+      <div class="wrap">
+        <header id="page-header">
+          <h1 id="page-title">作品</h1>
+          <p id="work-summary"></p>
+          <p id="note-text" class="note-text">本门户本阶段展示各组视频作品；网页入口后续开放。</p>
+        </header>
 
-  <footer class="site-footer">
-    <div class="wrap">
-      <p>CW-PORTAL-VIDEO-20261109-01 · 本阶段只挂视频 · 公开 Pages / 发群须用户批</p>
-    </div>
-  </footer>
+        <div class="workspace-body">
+          <section id="work-detail" aria-live="polite">
+            <!-- filled by portal.js: Ready inspector, Empty pending, or #detail-empty -->
+          </section>
+
+          <section id="work-index" aria-labelledby="page-title">
+            <nav id="index-filter" aria-label="按状态筛选">
+              <button type="button" data-filter="all" aria-pressed="true">全部</button>
+              <button type="button" data-filter="playable" aria-pressed="false">可播放</button>
+              <button type="button" data-filter="pending" aria-pressed="false">待提交</button>
+            </nav>
+            <div id="work-list" class="work-list" role="list">
+              <!-- filled by portal.js: 10 × .work-row -->
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <p>CW-PORTAL-VIDEO-20261109-01 — 本阶段只挂视频 — 公开 Pages / 发群须用户批</p>
+      </div>
+    </footer>
+  </div>
 
   <div id="player-modal" class="modal" hidden>
     <div id="player-backdrop" class="modal-backdrop" aria-hidden="true"></div>

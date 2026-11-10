@@ -3,35 +3,58 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Classwork Video Portal · EN</title>
+  <title>Classwork Video Portal (EN)</title>
   <link rel="stylesheet" href="assets/css/portal.css" />
 </head>
 <body>
-  <header class="site-header">
-    <div class="wrap">
-      <nav class="lang-switch" aria-label="Language">
-        <a href="index-cn.html">中文</a>
-        <span class="current">English</span>
-      </nav>
-      <p class="kicker">Classwork Video Portal</p>
-      <h1 id="course-title">Loading course title…</h1>
-      <p class="meta-line" id="meta-line">Term · Instructor</p>
-      <p class="note" id="note-text">This portal shows group videos in this phase; website links come later.</p>
-    </div>
-  </header>
+  <div id="app-shell">
+    <header id="site-bar" class="site-bar">
+      <div class="wrap site-bar-inner">
+        <p id="site-brand"><span id="course-title">Loading course title…</span></p>
+        <p id="meta-line">Term Instructor</p>
+        <nav id="site-nav">
+          <div class="lang-switch" aria-label="Language">
+            <a href="index-cn.html">中</a>
+            <span class="current">EN</span>
+          </div>
+          <a class="nav-works" href="#work-index">Works</a>
+        </nav>
+      </div>
+    </header>
 
-  <main class="section">
-    <div class="wrap">
-      <h2 id="section-title">Group Work</h2>
-      <div id="works-grid" class="grid" aria-live="polite"></div>
-    </div>
-  </main>
+    <main id="workspace">
+      <div class="wrap">
+        <header id="page-header">
+          <h1 id="page-title">Works</h1>
+          <p id="work-summary"></p>
+          <p id="note-text" class="note-text">This portal shows group videos in this phase; website links come later.</p>
+        </header>
 
-  <footer class="site-footer">
-    <div class="wrap">
-      <p>CW-PORTAL-VIDEO-20261109-01 · Video-only phase · Public Pages / sharing require user approval</p>
-    </div>
-  </footer>
+        <div class="workspace-body">
+          <section id="work-detail" aria-live="polite">
+            <!-- filled by portal.js: Ready inspector, Empty pending, or #detail-empty -->
+          </section>
+
+          <section id="work-index" aria-labelledby="page-title">
+            <nav id="index-filter" aria-label="Filter by status">
+              <button type="button" data-filter="all" aria-pressed="true">All</button>
+              <button type="button" data-filter="playable" aria-pressed="false">Playable</button>
+              <button type="button" data-filter="pending" aria-pressed="false">Pending</button>
+            </nav>
+            <div id="work-list" class="work-list" role="list">
+              <!-- filled by portal.js: 10 × .work-row -->
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <p>CW-PORTAL-VIDEO-20261109-01 — Video-only phase — Public Pages / sharing require user approval</p>
+      </div>
+    </footer>
+  </div>
 
   <div id="player-modal" class="modal" hidden>
     <div id="player-backdrop" class="modal-backdrop" aria-hidden="true"></div>
