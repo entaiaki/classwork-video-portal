@@ -3,15 +3,20 @@
 **Ticket**: CW-PORTAL-VIDEO-20261109-01  
 **Phase**: video-only (website links reserved, not clickable)  
 **Primary demo page**: `index-cn.html`  
-**Current shell (R5)**: 应用壳 + 作品索引 (App-shell + Work Index) — sticky site bar, work inspector, and a 10-slot work index with status filters. Local preview only; do not treat this as a public Pages update.
+**Current shell (R8)**: 滚动叙事 (scroll narrative) — hero, ten alternating work sections, side rail, section counter, footer, player modal. Motion is a center-lock system on the R7 structure (scroll progress, pointer, cover-to-player). Local preview only; do not treat this as a public Pages update.
 
 
 ## Open locally
 
-### Recommended (http.server)
+### Recommended
 
 ```bash
-cd /workspace/coursework/portal-video
+npm run dev
+```
+
+Serves the folder on http://127.0.0.1:7100/ (`/` is the Chinese page). No build step.
+
+```bash
 python -m http.server 8765
 ```
 
@@ -26,7 +31,7 @@ You can open `index-cn.html` directly in a browser. Some browsers block `fetch("
 
 ## Data
 
-The work index and inspector are driven by `data/works.json`:
+The ten work sections are driven by `data/works.json`:
 
 - `meta.*` — course / term / instructor / note (placeholders OK)
 - `groups[]` — exactly 10 slots (`slot` 1–10); `status`: `ready` | `empty` | `broken`

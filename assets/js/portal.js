@@ -1,10 +1,14 @@
 (function () {
   "use strict";
 
-  /* CW-PORTAL-BEAUTIFY-R5 — 滚动叙事版 R7 质感打磨（2026-11-11 用户定调：高级感）
-     hero 逐字入场 → 逐组展区（IntersectionObserver 显现）+ 滚动导航轨 + 展区计数器
-     + 封面可播态（整幅可点）+ 封面/hero 视差 + 继承播放模态。
+  /* CW-PORTAL R8 — R7 滚动叙事 + center-lock 运动。
+     --sheet / --lock 由 CSS view() 时间线驱动；不支持时同一 rAF 写入。
+     指针惯性只跟当前封面与播放钮。播放器从封面 FLIP。
      Empty 硬红线：无播钮、封面不可点、不绑 openPlayer、点击不开模态。不改 works.json。 */
+
+  var FLIP_MS = 480;
+  var FADE_MS = 240;
+  var sheetCss = false;
 
   var lang = (document.documentElement.getAttribute("data-lang") || "zh").toLowerCase();
   var isZh = lang.indexOf("zh") === 0;
@@ -145,7 +149,7 @@
 
   /* ── Hero / 顶栏元信息 ── */
   function splitTitleChars(titleEl, text) {
-    /* 逐字入场：拆成 span.char，级联延迟；aria 保持整词可读 */
+    /* 逐字蒙版上移：外层裁切，内层上滑；aria 保持整词可读 */
     titleEl.textContent = "";
     titleEl.setAttribute("aria-label", text);
     titleEl.classList.add("has-chars");
@@ -155,8 +159,11 @@
       var span = document.createElement("span");
       span.className = "char";
       span.setAttribute("aria-hidden", "true");
-      span.style.setProperty("--cd", 120 + i * 55 + "ms");
-      span.textContent = ch;
+      var inner = document.createElement("span");
+      inner.className = "char-in";
+      inner.style.setProperty("--cd", 120 + i * 55 + "ms");
+      inner.textContent = ch === " " ? "\u00a0" : ch;
+      span.appendChild(inner);
       titleEl.appendChild(span);
     });
   }
@@ -234,8 +241,13 @@
     slot.appendChild(
       el("span", "slot-count", "— " + slotDigits(group.slot) + " / " + slotDigits(total))
     );
-    var name = el("h2", "section-name", pick(group, "name_zh", "name_en"));
+    var nameText = pick(group, "name_zh", "name_en");
+    var name = el("h2", "section-name");
     name.style.setProperty("--d", "70ms");
+    name.appendChild(el("span", "name-fill", nameText));
+    var nameStroke = el("span", "name-stroke", nameText);
+    nameStroke.setAttribute("aria-hidden", "true");
+    name.appendChild(nameStroke);
     metaCol.appendChild(slot);
     metaCol.appendChild(name);
 
@@ -279,11 +291,13 @@
         "aria-label",
         (status === "ready" ? t.play : t.brokenCta) + " " + title
       );
+      var media = el("span", "cover-media");
       var img = document.createElement("img");
       img.src = group.cover || "assets/img/placeholder-cover.svg";
       img.alt = "";
       img.loading = "lazy";
-      frame.appendChild(img);
+      media.appendChild(img);
+      frame.appendChild(media);
       var hint = el("span", "cover-playhint");
       hint.setAttribute("aria-hidden", "true");
       hint.innerHTML = PLAY_SVG + "<span></span>";
@@ -320,6 +334,9 @@
     var rail = document.getElementById("works-rail");
     if (!rail) return;
     rail.innerHTML = "";
+    var cursor = el("span", "rail-cursor");
+    cursor.setAttribute("aria-hidden", "true");
+    rail.appendChild(cursor);
     (groups || []).forEach(function (g) {
       var btn = el("button", "rail-item");
       btn.type = "button";
@@ -336,6 +353,66 @@
       });
       rail.appendChild(btn);
     });
+  }
+
+  function moveRailCursor(index) {
+    var rail = document.getElementById("works-rail");
+    if (!rail) return;
+    var cursor = rail.querySelector(".rail-cursor");
+    var items = rail.querySelectorAll(".rail-item");
+    if (!cursor) return;
+    if (index < 0 || !items[index]) {
+      cursor.classList.remove("is-on");
+      return;
+    }
+    var item = items[index];
+    var y = item.offsetTop + item.offsetHeight / 2;
+    cursor.style.transform = "translate3d(0," + y.toFixed(1) + "px,0)";
+    cursor.classList.add("is-on");
+  }
+
+  var counterState = { n: 1, timer: 0 };
+
+  function setCounter(n) {
+    var holder = document.getElementById("counter-current");
+    if (!holder) return;
+    var label = slotDigits(n);
+    if (!holder.classList.contains("counter-viewport")) {
+      var initial = holder.textContent || label;
+      holder.textContent = "";
+      holder.classList.add("counter-viewport");
+      holder.appendChild(el("span", "counter-digit", initial));
+    }
+    var current = holder.querySelector(".counter-digit:last-child");
+    if (current && current.textContent === label && holder.childElementCount === 1) {
+      counterState.n = n;
+      return;
+    }
+    var prev = counterState.n;
+    counterState.n = n;
+    if (prefersReducedMotion() || Math.abs(n - prev) !== 1) {
+      holder.textContent = "";
+      holder.appendChild(el("span", "counter-digit", label));
+      return;
+    }
+    var dir = n > prev ? "dir-down" : "dir-up";
+    var oldDigits = holder.querySelectorAll(".counter-digit");
+    var old = oldDigits[oldDigits.length - 1];
+    var next = el("span", "counter-digit is-next " + dir, label);
+    holder.appendChild(next);
+    if (old) old.classList.add("is-out", dir);
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        next.classList.remove("is-next");
+        next.classList.add("is-in");
+      });
+    });
+    clearTimeout(counterState.timer);
+    counterState.timer = setTimeout(function () {
+      if (counterState.n !== n) return;
+      holder.textContent = "";
+      holder.appendChild(el("span", "counter-digit", label));
+    }, 460);
   }
 
   /* ── 显现观察器 ── */
@@ -388,7 +465,6 @@
     var bar = document.getElementById("site-bar");
     var progress = document.getElementById("scroll-progress");
     var hero = document.getElementById("hero");
-    var counterCurrent = document.getElementById("counter-current");
     var ticking = false;
 
     function update() {
@@ -406,9 +482,11 @@
         progress.style.transform = "scaleX(" + ratio.toFixed(4) + ")";
       }
 
-      /* Hero 描边字缓漂：比页面滚得慢，制造纵深 */
-      if (hero && !prefersReducedMotion() && y < window.innerHeight * 1.2) {
-        hero.style.setProperty("--hero-drift", (y * 0.09).toFixed(1) + "px");
+      /* Hero 离场进度：正文上浮淡出，背景描边字反向漂移 */
+      if (hero && !prefersReducedMotion()) {
+        var heroH = hero.offsetHeight || 1;
+        var heroP = Math.min(1, Math.max(0, -hero.getBoundingClientRect().top / heroH));
+        hero.style.setProperty("--hero-p", heroP.toFixed(4));
       }
 
       /* 导航高亮 + 计数器：穿过视口中线的展区 */
@@ -439,28 +517,23 @@
           items[j].removeAttribute("aria-current");
         }
       }
-      if (counterCurrent && activeIdx >= 0) {
-        counterCurrent.textContent = slotDigits(activeIdx + 1);
-      }
+      if (activeIdx >= 0) setCounter(activeIdx + 1);
+      else setCounter(1);
+      moveRailCursor(activeIdx);
 
-      /* 视差：巨号 + 封面，只动装饰/容器，不与显现动画（transform 无关属性）冲突 */
-      if (!prefersReducedMotion()) {
+      /* 无 view() 时间线时，用同一对变量补上 center-lock */
+      if (!sheetCss && !prefersReducedMotion()) {
+        var viewH = window.innerHeight || 1;
         for (var k = 0; k < sections.length; k++) {
           var rect = sections[k].getBoundingClientRect();
-          if (rect.bottom < 0 || rect.top > window.innerHeight) continue;
-          var p = (rect.top + rect.height / 2 - window.innerHeight / 2) / window.innerHeight;
-          var ghost = sections[k].querySelector(".section-ghost");
-          if (ghost) {
-            ghost.style.transform = "translateY(calc(-50% + " + (p * 42).toFixed(1) + "px))";
-          }
-          var frame = sections[k].querySelector(".cover-frame");
-          if (frame) {
-            frame.style.transform = "translateY(" + (p * -16).toFixed(1) + "px)";
-          }
-          var pending = sections[k].querySelector(".cover-pending");
-          if (pending) {
-            pending.style.transform = "translateY(" + (p * -10).toFixed(1) + "px)";
-          }
+          var total = rect.height + viewH;
+          var sheet = total > 0 ? (viewH - rect.top) / total : 0.5;
+          if (sheet < 0) sheet = 0;
+          else if (sheet > 1) sheet = 1;
+          var lock = 1 - Math.abs(sheet - 0.5) * 2;
+          if (lock < 0) lock = 0;
+          sections[k].style.setProperty("--sheet", sheet.toFixed(4));
+          sections[k].style.setProperty("--lock", lock.toFixed(4));
         }
       }
     }
@@ -480,9 +553,7 @@
   /* ── 模态（继承契约：Esc / backdrop / 还焦 / fail-box） ── */
   var modal, videoEl, failEl, titleEl, subEl;
   var lastTrigger = null;
-  var modalBusy = false;
   var closeTimer = null;
-  var MOTION_MS = 150;
 
   function cacheModal() {
     modal = document.getElementById("player-modal");
@@ -519,14 +590,76 @@
     }
   }
 
+  function panelEl() {
+    return modal ? modal.querySelector(".modal-panel") : null;
+  }
+
+  function clearPanelMotion() {
+    var panel = panelEl();
+    if (!panel) return;
+    panel.style.transition = "";
+    panel.style.transform = "";
+    panel.style.opacity = "";
+  }
+
+  function coverTrigger(node) {
+    return !!(node && node.classList && node.classList.contains("cover-frame") && node.isConnected);
+  }
+
+  function invertToward(panelRect, targetRect) {
+    var scale = targetRect.width / panelRect.width;
+    if (!isFinite(scale) || scale <= 0) scale = 1;
+    var dx = (targetRect.left + targetRect.width / 2) - (panelRect.left + panelRect.width / 2);
+    var dy = (targetRect.top + targetRect.height / 2) - (panelRect.top + panelRect.height / 2);
+    return "translate3d(" + dx.toFixed(2) + "px," + dy.toFixed(2) + "px,0) scale(" + scale.toFixed(4) + ")";
+  }
+
+  function playFlipOpen(trigger) {
+    if (prefersReducedMotion() || !coverTrigger(trigger)) return false;
+    var panel = panelEl();
+    if (!panel) return false;
+    var first = trigger.getBoundingClientRect();
+    if (first.width < 8) return false;
+    panel.style.transition = "none";
+    panel.style.transform = "none";
+    panel.style.opacity = "1";
+    void panel.offsetWidth;
+    var last = panel.getBoundingClientRect();
+    if (last.width < 8) return false;
+    panel.style.transform = invertToward(last, first);
+    void panel.offsetWidth;
+    panel.style.transition = "transform " + FLIP_MS + "ms var(--ease-out)";
+    panel.style.transform = "none";
+    panel.style.opacity = "";
+    return true;
+  }
+
+  function playFlipClose(trigger) {
+    if (prefersReducedMotion() || !coverTrigger(trigger)) return false;
+    var panel = panelEl();
+    if (!panel) return false;
+    var target = trigger.getBoundingClientRect();
+    if (target.width < 8 || target.bottom < -40 || target.top > window.innerHeight + 40) return false;
+    panel.style.transition = "none";
+    panel.style.transform = "none";
+    panel.style.opacity = "1";
+    void panel.offsetWidth;
+    var last = panel.getBoundingClientRect();
+    if (last.width < 8) return false;
+    var dest = invertToward(last, target);
+    panel.style.transition = "transform " + FLIP_MS + "ms var(--ease-out), opacity " + FLIP_MS + "ms ease";
+    panel.style.transform = dest;
+    panel.style.opacity = "0";
+    return true;
+  }
+
   function openPlayer(group, triggerEl) {
     cacheModal();
     if (!modal) return;
     var status = group.status || "empty";
     if (status === "empty") return; /* 硬红线：Empty 永不开播 */
     if (!isPlayableStatus(status)) return;
-    if (modalBusy || modal.classList.contains("is-open")) return;
-    modalBusy = true;
+    if (modal.classList.contains("is-open") || modal.classList.contains("is-closing")) return;
 
     if (closeTimer) {
       clearTimeout(closeTimer);
@@ -557,9 +690,13 @@
     }
 
     modal.hidden = false;
-    document.body.style.overflow = "hidden";
+    modal.classList.remove("is-closing");
+    clearPanelMotion();
+    document.body.classList.add("is-modal-open");
+    document.body.style.overflow = "";
     void modal.offsetWidth;
     modal.classList.add("is-open");
+    playFlipOpen(lastTrigger);
 
     var closeBtn = document.getElementById("player-close");
     if (closeBtn) closeBtn.focus();
@@ -567,7 +704,6 @@
     var src = group.video && group.video.src;
     if (!src) {
       showFail(t.videoFailBody);
-      modalBusy = false;
       return;
     }
 
@@ -602,7 +738,6 @@
         showFail(t.videoFailBody);
       };
     }
-    modalBusy = false;
   }
 
   function finishClose() {
@@ -610,6 +745,10 @@
     if (!modal) return;
     modal.hidden = true;
     modal.classList.remove("is-open");
+    modal.classList.remove("is-closing");
+    modal.classList.remove("is-flip");
+    clearPanelMotion();
+    document.body.classList.remove("is-modal-open");
     document.body.style.overflow = "";
     if (videoEl) {
       videoEl.pause();
@@ -624,7 +763,6 @@
     }
     var restore = lastTrigger;
     lastTrigger = null;
-    modalBusy = false;
     closeTimer = null;
     if (restore && typeof restore.focus === "function") {
       try { restore.focus(); } catch (e) { /* ignore */ }
@@ -634,9 +772,9 @@
   function closePlayer() {
     cacheModal();
     if (!modal || modal.hidden) return;
-    if (!modal.classList.contains("is-open") && modal.hidden) return;
+    if (modal.classList.contains("is-closing")) return;
 
-    modal.classList.remove("is-open");
+    modal.classList.add("is-closing");
     if (videoEl) {
       try { videoEl.pause(); } catch (e) { /* ignore */ }
     }
@@ -645,8 +783,11 @@
       finishClose();
       return;
     }
+    var flipped = playFlipClose(lastTrigger);
+    if (flipped) modal.classList.add("is-flip");
+    else clearPanelMotion();
     if (closeTimer) clearTimeout(closeTimer);
-    closeTimer = setTimeout(finishClose, MOTION_MS);
+    closeTimer = setTimeout(finishClose, flipped ? FLIP_MS + 40 : FADE_MS);
   }
 
   function wireModal() {
@@ -676,10 +817,112 @@
     if (hero) hero.classList.add("is-visible");
   }
 
+  function wirePointer() {
+    if (prefersReducedMotion()) return;
+    if (window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches) return;
+
+    var cover = null;
+    var hold = null;
+    var btn = null;
+    var mx = 0;
+    var my = 0;
+    var cx = 0;
+    var cy = 0;
+    var raf = 0;
+
+    function writeInertia(node) {
+      if (!node) return;
+      node.style.setProperty("--ix", cx.toFixed(4));
+      node.style.setProperty("--iy", cy.toFixed(4));
+    }
+
+    function tick() {
+      raf = 0;
+      cx += (mx - cx) * 0.16;
+      cy += (my - cy) * 0.16;
+      writeInertia(cover || hold);
+      var settled = Math.abs(mx - cx) <= 0.004 && Math.abs(my - cy) <= 0.004;
+      if (!settled) {
+        raf = requestAnimationFrame(tick);
+        return;
+      }
+      if (!cover && hold) {
+        hold.style.removeProperty("--ix");
+        hold.style.removeProperty("--iy");
+        hold = null;
+      }
+    }
+
+    function ensure() {
+      if (!raf) raf = requestAnimationFrame(tick);
+    }
+
+    document.addEventListener("pointermove", function (e) {
+      if (e.pointerType && e.pointerType !== "mouse") return;
+      var nextCover = e.target && e.target.closest ? e.target.closest(".cover-frame") : null;
+      var nextBtn = e.target && e.target.closest ? e.target.closest(".section-play") : null;
+
+      if (cover && cover !== nextCover) {
+        cover.style.removeProperty("--lx");
+        cover.style.removeProperty("--ly");
+        if (!nextCover) {
+          hold = cover;
+          mx = 0;
+          my = 0;
+        } else {
+          cover.style.removeProperty("--ix");
+          cover.style.removeProperty("--iy");
+          cx = 0;
+          cy = 0;
+          if (hold && hold !== nextCover) {
+            hold.style.removeProperty("--ix");
+            hold.style.removeProperty("--iy");
+          }
+          hold = null;
+        }
+      }
+
+      if (btn && btn !== nextBtn) {
+        btn.style.removeProperty("--bx");
+        btn.style.removeProperty("--by");
+      }
+
+      cover = nextCover;
+      btn = nextBtn;
+
+      if (cover) {
+        hold = null;
+        var rect = cover.getBoundingClientRect();
+        var w = rect.width || 1;
+        var h = rect.height || 1;
+        mx = ((e.clientX - rect.left) / w) * 2 - 1;
+        my = ((e.clientY - rect.top) / h) * 2 - 1;
+        cover.style.setProperty("--lx", ((e.clientX - rect.left) / w * 100).toFixed(2) + "%");
+        cover.style.setProperty("--ly", ((e.clientY - rect.top) / h * 100).toFixed(2) + "%");
+      }
+
+      if (btn) {
+        var b = btn.getBoundingClientRect();
+        var bx = (e.clientX - (b.left + b.width / 2)) / ((b.width || 1) / 2);
+        var by = (e.clientY - (b.top + b.height / 2)) / ((b.height || 1) / 2);
+        if (bx > 1) bx = 1;
+        if (bx < -1) bx = -1;
+        if (by > 1) by = 1;
+        if (by < -1) by = -1;
+        btn.style.setProperty("--bx", bx.toFixed(3));
+        btn.style.setProperty("--by", by.toFixed(3));
+      }
+      ensure();
+    }, { passive: true });
+  }
+
   function boot() {
     /* 显现系统的隐藏起点只在 JS 在场时启用；无 JS 全量可见 */
     if (!prefersReducedMotion()) {
       document.body.classList.add("js-reveal");
+      sheetCss = !!(window.CSS && CSS.supports && CSS.supports("animation-timeline: view()"));
+      if (sheetCss) document.documentElement.classList.add("sheet-css");
+      else document.documentElement.classList.add("sheet-js");
     }
     wireModal();
     var closeBtn = document.getElementById("player-close");
@@ -697,6 +940,7 @@
         renderRail(allGroups);
         wireReveal();
         wireScroll();
+        wirePointer();
       })
       .catch(function (err) {
         showLoadError(t.loadFail + (err && err.message ? " [" + err.message + "]" : ""));

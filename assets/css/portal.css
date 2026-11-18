@@ -1,11 +1,28 @@
-/* CW-PORTAL-BEAUTIFY-R5 · 滚动叙事版 R7 质感打磨（2026-11-11 用户定调：高级感）
-   结构：hero 开场 → #works-track 十组展区（左右交叉）+ #works-rail 滚动导航 + 继承播放模态。
-   R7 增量：纸面颗粒、逐字标题入场、展区计数器、封面可播态（整幅可点+悬停提示）、
-   封面/hero 视差、导航轨细节、进度条 transform 化、模态 backdrop 微模糊、页脚字标。
-   Rollback: portal.css.bak-kimi3（R6）/ .bak-kimi2（应用壳版）/ .bak-kimi（更早）
-   系统字体栈，无外链字体；无 React；works.json 语义不动。
-   动效纪律：reveal 用 IntersectionObserver 触发 transition（可打断、终态可见、JS 缺席不藏内容）；
-   UI 反馈 <300ms；叙事入场可稍长；reduced-motion 全关。 */
+/* CW-PORTAL R8 · 滚动叙事（R7 结构不动）+ center-lock 运动系统
+   结构：hero → #works-track 十组展区（左右交叉）→ #works-rail → 计数器 → 页脚 → 播放模态。
+   一条进度语言：每组 --sheet（进/出视口 0→1）与 --lock（边缘 0、视口中线 1）。
+   中线时字标锁实、槽号转松绿、发丝线拉满、封面内图像回正；边缘则描边残影、线缩短、图像错位。
+   指针只作用于当前封面（聚光 + 惯性胶囊）和播放钮的微磁吸。播放器从封面矩形 FLIP 展开。
+   系统字体栈，无外链字体 / CDN；无 React；works.json 语义不动。
+   reduced-motion：不拆字、无视差、无装饰动画；--sheet/--lock 锁在静止姿态；无 JS 内容不隐藏。 */
+
+@property --sheet {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0.5;
+}
+
+@property --lock {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --hero-p {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
 
 :root {
   /* ── Palette tier ── */
@@ -77,8 +94,9 @@
   --dur-press: 120ms;
   --dur-hover: 140ms;
   --dur-ui: 200ms;
-  --dur-modal-in: 220ms;
-  --dur-modal-out: 140ms;
+  --dur-modal-in: 280ms;
+  --dur-modal-out: 240ms;
+  --dur-flip: 480ms;
   --dur-reveal: 640ms;
   --dur-wipe: 700ms;
   --dur-hero: 700ms;
@@ -119,6 +137,7 @@ html, body { margin: 0; padding: 0; }
 
 html {
   scroll-behavior: smooth;
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -158,7 +177,7 @@ a:hover { text-decoration: none; }
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* ══════════ 显现系统：JS 缺席或 reduced-motion 时内容永远可见 ══════════ */
+/* ══════════ 显现系统：同一动词「向上揭幕」。JS 缺席或 reduced-motion 时不隐藏 ══════════ */
 body.js-reveal .reveal-item,
 body.js-reveal .work-section .section-meta > *,
 body.js-reveal .work-section .cover-frame,
@@ -166,53 +185,66 @@ body.js-reveal .work-section .cover-pending {
   opacity: 0;
 }
 
+/* 未揭幕前移出 Tab 序，避免焦点落在看不见的播钮上 */
+body.js-reveal .work-section:not(.is-visible) .section-meta > *,
+body.js-reveal .work-section:not(.is-visible) .cover-frame,
+body.js-reveal .work-section:not(.is-visible) .cover-pending {
+  visibility: hidden;
+}
+
 body.js-reveal .reveal-item {
-  transform: translateY(18px);
+  clip-path: inset(0 0 100% 0);
   transition:
     opacity var(--dur-reveal) var(--ease-out) var(--d, 0ms),
-    transform var(--dur-reveal) var(--ease-out) var(--d, 0ms);
+    clip-path var(--dur-reveal) var(--ease-out) var(--d, 0ms);
 }
 
 body.js-reveal #hero.is-visible .reveal-item,
 body.js-reveal .no-js-reveal .reveal-item {
   opacity: 1;
-  transform: none;
+  clip-path: inset(0 0 0 0);
 }
 
-/* Hero 大标题逐字入场（JS 拆字后接管 .reveal-item 的职责） */
+/* Hero 大标题：逐字蒙版上移（JS 拆字后接管 .reveal-item） */
 body.js-reveal #page-title.has-chars {
   opacity: 1;
-  transform: none;
+  clip-path: none;
   transition: none;
 }
 
 body.js-reveal #page-title .char {
   display: inline-block;
-  opacity: 0;
-  transform: translateY(0.45em);
-  transition:
-    opacity var(--dur-hero) var(--ease-out) var(--cd, 0ms),
-    transform var(--dur-hero) var(--ease-out) var(--cd, 0ms);
+  overflow: hidden;
+  vertical-align: bottom;
+  line-height: 1.05;
+  padding: 0 0.035em;
+  margin: 0 -0.035em;
 }
 
-body.js-reveal #hero.is-visible #page-title .char {
-  opacity: 1;
-  transform: none;
+body.js-reveal #page-title .char-in {
+  display: inline-block;
+  transform: translate3d(0, 115%, 0);
+  transition: transform var(--dur-hero) var(--ease-out) var(--cd, 0ms);
+}
+
+body.js-reveal #hero.is-visible #page-title .char-in {
+  transform: translate3d(0, 0, 0);
 }
 
 body.js-reveal .work-section .section-meta > * {
-  transform: translateY(22px);
+  clip-path: inset(0 0 110% 0);
   transition:
     opacity var(--dur-reveal) var(--ease-out) var(--d, 0ms),
-    transform var(--dur-reveal) var(--ease-out) var(--d, 0ms);
+    clip-path var(--dur-reveal) var(--ease-out) var(--d, 0ms);
 }
 
 body.js-reveal .work-section.is-visible .section-meta > * {
   opacity: 1;
-  transform: none;
+  visibility: visible;
+  clip-path: inset(-12% -8% -12% -8%);
 }
 
-/* 封面：向上揭幕 + 内部轻微回落缩放 */
+/* 封面：向上揭幕。滚动/指针位移放在 .cover-media，避免和 clip 抢 transform */
 body.js-reveal .work-section .cover-frame {
   clip-path: inset(0 0 100% 0 round var(--radius));
   transition:
@@ -222,28 +254,21 @@ body.js-reveal .work-section .cover-frame {
 
 body.js-reveal .work-section.is-visible .cover-frame {
   opacity: 1;
+  visibility: visible;
   clip-path: inset(0 0 0 0 round var(--radius));
 }
 
-body.js-reveal .work-section .cover-frame img {
-  transform: scale(1.06);
-  transition: transform 900ms var(--ease-out) 160ms;
-}
-
-body.js-reveal .work-section.is-visible .cover-frame img {
-  transform: scale(1);
-}
-
 body.js-reveal .work-section .cover-pending {
-  transform: translateY(22px);
+  clip-path: inset(0 0 100% 0 round var(--radius));
   transition:
     opacity var(--dur-reveal) var(--ease-out) 140ms,
-    transform var(--dur-reveal) var(--ease-out) 140ms;
+    clip-path var(--dur-wipe) var(--ease-in-out) 140ms;
 }
 
 body.js-reveal .work-section.is-visible .cover-pending {
   opacity: 1;
-  transform: none;
+  visibility: visible;
+  clip-path: inset(0 0 0 0 round var(--radius));
 }
 
 /* ══════════ 顶栏 + 滚动进度 ══════════ */
@@ -412,7 +437,7 @@ body.js-reveal .work-section.is-visible .cover-pending {
   overflow: hidden;
 }
 
-/* 背景巨号描边字：纯装饰，随滚动缓漂（JS 写 --hero-drift） */
+/* 背景巨号描边字：比正文离场更快，和展区 ghost 同一套描边材料 */
 #hero::after {
   content: "G01–G10";
   position: absolute;
@@ -425,16 +450,18 @@ body.js-reveal .work-section.is-visible .cover-pending {
   line-height: 1;
   color: transparent;
   -webkit-text-stroke: 1px var(--line-strong);
-  opacity: 0.55;
+  opacity: calc(0.55 * (1 - var(--hero-p)));
   pointer-events: none;
   user-select: none;
-  transform: translateY(var(--hero-drift, 0px));
+  transform: translate3d(calc(var(--hero-p) * -4%), calc(var(--hero-p) * 20%), 0);
 }
 
 .hero-inner {
   position: relative;
   z-index: 1;
   padding: var(--space-48) 0;
+  transform: translate3d(0, calc(var(--hero-p) * -36px), 0);
+  opacity: max(0, calc(1 - var(--hero-p) * 0.9));
 }
 
 #hero-eyebrow {
@@ -456,6 +483,16 @@ body.js-reveal .work-section.is-visible .cover-pending {
   height: 1px;
   background: var(--accent);
   flex-shrink: 0;
+  transform-origin: 0 50%;
+}
+
+body.js-reveal #hero-eyebrow::before {
+  transform: scaleX(0);
+  transition: transform var(--dur-hero) var(--ease-out) 60ms;
+}
+
+body.js-reveal #hero.is-visible #hero-eyebrow::before {
+  transform: scaleX(1);
 }
 
 #page-title {
@@ -550,13 +587,29 @@ body.js-reveal .work-section.is-visible .cover-pending {
 }
 
 .work-section {
+  --sheet-dir: 1;
   position: relative;
   min-height: 88dvh;
   display: flex;
   align-items: center;
   padding: var(--space-64) 0;
-  border-top: 1px solid var(--line);
+  border-top: 0;
   overflow: hidden;
+}
+
+/* 发丝线在视口中线拉满，组与组之间是同一条线的呼吸 */
+.work-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--line-strong);
+  transform: scaleX(calc(0.2 + var(--lock) * 0.8));
+  transform-origin: center;
+  z-index: 2;
+  pointer-events: none;
 }
 
 .work-section.is-empty {
@@ -572,6 +625,7 @@ body.js-reveal .work-section.is-visible .cover-pending {
   align-items: center;
   position: relative;
   z-index: 1;
+  transform: translate3d(0, calc((var(--sheet) - 0.5) * -22px), 0);
 }
 
 .work-section:nth-child(even) .section-inner {
@@ -586,11 +640,37 @@ body.js-reveal .work-section.is-visible .cover-pending {
   order: 1;
 }
 
-/* 巨号描边槽号：装饰纵深（JS 写内联 transform 做视差） */
+.work-section:nth-child(even) {
+  --sheet-dir: -1;
+}
+
+/* 视口进度驱动 --sheet / --lock。不支持时由 JS 写同一对变量（html.sheet-js）。 */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    html.sheet-css .work-section {
+      animation: sheet-progress linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+      animation-duration: auto;
+    }
+  }
+}
+
+@keyframes sheet-progress {
+  0% { --sheet: 0; --lock: 0; }
+  50% { --sheet: 0.5; --lock: 1; }
+  100% { --sheet: 1; --lock: 0; }
+}
+
+/* 巨号描边槽号：比正文更快的一层，中线时更清晰 */
 .section-ghost {
   position: absolute;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translate3d(
+    calc(var(--sheet-dir) * (var(--sheet) - 0.5) * -4%),
+    calc(-50% + (var(--sheet) - 0.5) * -72px),
+    0
+  );
   font-family: var(--font-mono);
   font-size: clamp(9rem, 24vw, 20rem);
   font-weight: 700;
@@ -598,7 +678,7 @@ body.js-reveal .work-section.is-visible .cover-pending {
   letter-spacing: -0.05em;
   color: transparent;
   -webkit-text-stroke: 1px var(--line-strong);
-  opacity: 0.5;
+  opacity: calc(0.26 + var(--lock) * 0.34);
   pointer-events: none;
   user-select: none;
   z-index: 0;
@@ -632,6 +712,10 @@ body.js-reveal .work-section.is-visible .cover-pending {
   font-variant-numeric: tabular-nums;
 }
 
+.slot-code {
+  color: color-mix(in oklab, var(--muted) calc((1 - var(--lock)) * 100%), var(--accent));
+}
+
 .slot-count {
   font-weight: 400;
   letter-spacing: 0.1em;
@@ -639,6 +723,7 @@ body.js-reveal .work-section.is-visible .cover-pending {
 }
 
 .section-name {
+  position: relative;
   margin: 0;
   font-family: var(--font-sans);
   font-size: clamp(2rem, 3.6vw, 3rem);
@@ -646,6 +731,25 @@ body.js-reveal .work-section.is-visible .cover-pending {
   line-height: 1.12;
   letter-spacing: -0.022em;
   color: var(--ink);
+}
+
+.name-fill,
+.name-stroke {
+  display: block;
+}
+
+/* 描边残影：离中线时从字后错开，锁到中线时收进实字。实字始终可读 */
+.name-stroke {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in oklab, var(--line-strong) 80%, var(--accent));
+  opacity: calc((1 - var(--lock)) * 0.85);
+  transform: translate3d(calc((1 - var(--lock)) * 0.05em), calc((1 - var(--lock)) * 0.035em), 0);
+  pointer-events: none;
+  user-select: none;
 }
 
 .section-title {
@@ -705,8 +809,9 @@ body.js-reveal .work-section.is-visible .cover-pending {
   display: inline-flex;
   align-items: center;
   gap: var(--space-8);
+  transform: translate3d(calc(var(--bx, 0) * 5px), calc(var(--by, 0) * 3px), 0);
   transition:
-    transform var(--dur-press) var(--ease-out),
+    transform var(--dur-ui) var(--ease-out),
     background-color var(--dur-hover) ease,
     border-color var(--dur-hover) ease,
     box-shadow var(--dur-hover) ease;
@@ -714,6 +819,12 @@ body.js-reveal .work-section.is-visible .cover-pending {
 
 .section-play svg {
   flex-shrink: 0;
+  transition: transform var(--dur-ui) var(--ease-out);
+}
+
+.section-play:hover svg,
+.section-play:focus-visible svg {
+  transform: translateX(3px);
 }
 
 .section-play:hover {
@@ -723,7 +834,7 @@ body.js-reveal .work-section.is-visible .cover-pending {
 }
 
 .section-play:active {
-  transform: scale(0.97);
+  transform: translate3d(calc(var(--bx, 0) * 5px), calc(var(--by, 0) * 3px), 0) scale(0.97);
 }
 
 .section-play:focus-visible {
@@ -770,12 +881,43 @@ body.js-reveal .work-section.is-visible .cover-pending {
   box-shadow:
     0 1px 2px rgba(38, 36, 29, 0.05),
     0 24px 48px -20px rgba(38, 36, 29, 0.25);
+  -webkit-tap-highlight-color: transparent;
   transition:
     box-shadow var(--dur-ui) ease,
     border-color var(--dur-ui) ease;
 }
 
-.cover-frame img {
+/* 聚光：跟随指针，不参与点击 */
+.cover-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur-ui) var(--ease-out);
+  background: radial-gradient(
+    440px circle at var(--lx, 50%) var(--ly, 42%),
+    rgba(255, 255, 255, 0.28),
+    transparent 56%
+  );
+  mix-blend-mode: soft-light;
+}
+
+.cover-media {
+  position: absolute;
+  inset: -18%;
+  z-index: 0;
+  transform: translate3d(
+      calc(var(--ix, 0) * -2.2%),
+      calc((var(--sheet) - 0.5) * 8% + var(--iy, 0) * -1.6%),
+      0
+    )
+    scale(calc(1.03 + (1 - var(--lock)) * 0.035));
+}
+
+.cover-frame img,
+.cover-media img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -786,7 +928,8 @@ body.js-reveal .work-section.is-visible .cover-pending {
   position: absolute;
   left: 50%;
   top: 50%;
-  transform: translate(-50%, -50%) translateY(8px) scale(0.94);
+  z-index: 2;
+  transform: translate(-50%, -50%) translate(calc(var(--ix, 0) * 26px), calc(var(--iy, 0) * 16px));
   display: inline-flex;
   align-items: center;
   gap: var(--space-8);
@@ -800,9 +943,7 @@ body.js-reveal .work-section.is-visible .cover-pending {
   box-shadow: 0 10px 30px -10px rgba(24, 23, 17, 0.5);
   opacity: 0;
   pointer-events: none;
-  transition:
-    opacity var(--dur-ui) var(--ease-out),
-    transform var(--dur-ui) var(--ease-out);
+  transition: opacity var(--dur-ui) var(--ease-out);
 }
 
 .cover-playhint svg {
@@ -810,22 +951,22 @@ body.js-reveal .work-section.is-visible .cover-pending {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .cover-frame:hover {
+  .cover-frame:hover,
+  .cover-frame:focus-visible {
     border-color: var(--line-strong);
     box-shadow:
       0 1px 2px rgba(38, 36, 29, 0.06),
       0 32px 64px -24px rgba(38, 36, 29, 0.35);
   }
 
-  .cover-frame:hover img {
-    transition: transform 500ms var(--ease-out);
-    transform: scale(1.025);
+  .cover-frame:hover::before,
+  .cover-frame:focus-visible::before {
+    opacity: 1;
   }
 
   .cover-frame:hover .cover-playhint,
   .cover-frame:focus-visible .cover-playhint {
     opacity: 1;
-    transform: translate(-50%, -50%) translateY(0) scale(1);
   }
 }
 
@@ -838,7 +979,11 @@ body.js-reveal .work-section.is-visible .cover-pending {
 
 .cover-frame:focus-visible {
   outline: 2px solid var(--ink);
-  outline-offset: 3px;
+  outline-offset: 4px;
+  box-shadow:
+    inset 0 0 0 2px #fff,
+    0 1px 2px rgba(38, 36, 29, 0.06),
+    0 32px 64px -24px rgba(38, 36, 29, 0.35);
 }
 
 /* 待提交组：发丝虚线框 + 描边槽号，与封面拉开层级 */
@@ -851,6 +996,7 @@ body.js-reveal .work-section.is-visible .cover-pending {
   align-items: center;
   justify-content: center;
   gap: var(--space-8);
+  transform: translate3d(0, calc((var(--sheet) - 0.5) * -16px), 0);
   background:
     repeating-linear-gradient(
       -45deg,
@@ -906,14 +1052,24 @@ body.js-reveal .work-section.is-visible .cover-pending {
   transition: color var(--dur-hover) ease;
 }
 
-/* 激活短横：从点号左侧长出 */
-.rail-item::after {
-  content: "";
-  width: 0;
+.rail-cursor {
+  position: absolute;
+  right: 16px;
+  top: 0;
+  width: 14px;
   height: 1px;
+  margin-top: -0.5px;
   background: var(--accent);
-  order: 1;
-  transition: width var(--dur-ui) var(--ease-out);
+  opacity: 0;
+  transform: translate3d(0, 0, 0);
+  transition:
+    transform 480ms var(--ease-out),
+    opacity var(--dur-ui) var(--ease-out);
+  pointer-events: none;
+}
+
+.rail-cursor.is-on {
+  opacity: 1;
 }
 
 .rail-item::before {
@@ -947,8 +1103,8 @@ body.js-reveal .work-section.is-visible .cover-pending {
   font-weight: 700;
 }
 
-.rail-item.is-active::after {
-  width: 12px;
+.rail-item.is-active .rail-label {
+  transform: translateX(-4px);
 }
 
 .rail-item.is-active::before {
@@ -995,6 +1151,33 @@ body.js-reveal .work-section.is-visible .cover-pending {
   font-weight: 700;
 }
 
+#counter-current.counter-viewport {
+  display: inline-grid;
+  height: 1em;
+  line-height: 1;
+  overflow: hidden;
+  vertical-align: baseline;
+}
+
+.counter-digit {
+  grid-area: 1 / 1;
+  display: block;
+  height: 1em;
+  line-height: 1;
+}
+
+.counter-digit.is-next.dir-down { transform: translateY(110%); }
+.counter-digit.is-next.dir-up { transform: translateY(-110%); }
+
+.counter-digit.is-out,
+.counter-digit.is-in {
+  transition: transform 440ms var(--ease-out);
+}
+
+.counter-digit.is-out.dir-down { transform: translateY(-110%); }
+.counter-digit.is-out.dir-up { transform: translateY(110%); }
+.counter-digit.is-in { transform: translateY(0); }
+
 .counter-sep {
   color: var(--empty);
 }
@@ -1030,8 +1213,28 @@ body.js-reveal .work-section.is-visible .cover-pending {
   user-select: none;
 }
 
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .footer-mark {
+      animation: mark-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 45%;
+      animation-duration: auto;
+    }
+  }
+}
+
+@keyframes mark-rise {
+  from { transform: translate3d(0, 16%, 0); opacity: 0.12; }
+  to { transform: none; opacity: 0.5; }
+}
+
 /* ══════════ 播放模态（契约不变） ══════════ */
 .modal[hidden] { display: none !important; }
+
+body.is-modal-open {
+  overflow: hidden;
+}
 
 .modal {
   position: fixed;
@@ -1040,23 +1243,32 @@ body.js-reveal .work-section.is-visible .cover-pending {
   display: grid;
   place-items: center;
   padding: var(--space-16);
-  opacity: 0;
   pointer-events: none;
-  transition: opacity var(--dur-modal-out) ease-in;
+  overscroll-behavior: contain;
 }
 
 .modal.is-open {
-  opacity: 1;
   pointer-events: auto;
-  transition: opacity var(--dur-modal-in) var(--ease-out);
 }
 
 .modal-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(24, 23, 17, 0.5);
-  -webkit-backdrop-filter: blur(5px);
-  backdrop-filter: blur(5px);
+  background: rgba(24, 23, 17, 0.58);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: opacity var(--dur-modal-out) var(--ease-out);
+}
+
+.modal.is-open:not(.is-closing) .modal-backdrop {
+  opacity: 1;
+  transition: opacity var(--dur-modal-in) var(--ease-out);
+}
+
+.modal.is-closing .modal-backdrop {
+  opacity: 0;
+  transition: opacity var(--dur-flip) var(--ease-out);
 }
 
 .modal-panel {
@@ -1071,10 +1283,11 @@ body.js-reveal .work-section.is-visible .cover-pending {
     0 16px 40px rgba(0, 0, 0, 0.16),
     0 40px 80px -24px rgba(0, 0, 0, 0.2);
   opacity: 0;
-  transform: translateY(10px) scale(0.96);
+  transform: translate3d(0, 18px, 0) scale(0.985);
+  transform-origin: center center;
   transition:
-    opacity var(--dur-modal-out) ease-in,
-    transform var(--dur-modal-out) ease-in;
+    opacity var(--dur-modal-out) var(--ease-out),
+    transform var(--dur-modal-out) var(--ease-out);
 }
 
 .modal.is-open .modal-panel {
@@ -1083,6 +1296,19 @@ body.js-reveal .work-section.is-visible .cover-pending {
   transition:
     opacity var(--dur-modal-in) var(--ease-out),
     transform var(--dur-modal-in) var(--ease-out);
+}
+
+.modal.is-open.is-closing .modal-panel {
+  opacity: 0;
+  transform: translate3d(0, 12px, 0) scale(0.985);
+  transition:
+    opacity var(--dur-modal-out) ease,
+    transform var(--dur-modal-out) var(--ease-out);
+}
+
+.modal.is-open.is-closing.is-flip .modal-backdrop,
+.modal.is-closing.is-flip .modal-backdrop {
+  transition-duration: var(--dur-flip);
 }
 
 .modal-head {
@@ -1155,6 +1381,15 @@ body.js-reveal .work-section.is-visible .cover-pending {
   border-radius: var(--radius-sm);
 }
 
+.modal.is-open .modal-body video:not([hidden]) {
+  animation: video-settle 320ms var(--ease-out) both;
+}
+
+@keyframes video-settle {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .fail-box {
   background: var(--surface);
   color: var(--ink);
@@ -1182,7 +1417,7 @@ body.js-reveal .work-section.is-visible .cover-pending {
   border: 0;
 }
 
-/* ══════════ Reduced motion：内容终态直接可见 ══════════ */
+/* ══════════ Reduced motion：静止姿态，内容终态直接可见 ══════════ */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *,
@@ -1191,18 +1426,43 @@ body.js-reveal .work-section.is-visible .cover-pending {
     transition: none !important;
     animation: none !important;
   }
+  .work-section {
+    --sheet: 0.5 !important;
+    --lock: 1 !important;
+  }
+  #hero {
+    --hero-p: 0 !important;
+  }
+  .cover-frame {
+    --ix: 0 !important;
+    --iy: 0 !important;
+  }
+  .section-play {
+    --bx: 0 !important;
+    --by: 0 !important;
+  }
   body.js-reveal .reveal-item,
   body.js-reveal .work-section .section-meta > *,
   body.js-reveal .work-section .cover-frame,
   body.js-reveal .work-section .cover-pending,
   body.js-reveal .work-section .cover-frame img,
-  body.js-reveal #page-title .char {
+  body.js-reveal #page-title .char,
+  body.js-reveal #page-title .char-in {
     opacity: 1;
+    visibility: visible;
     transform: none;
     clip-path: none;
   }
+  .hero-inner,
   #hero::after {
     transform: none;
+    opacity: 1;
+  }
+  #hero::after {
+    opacity: 0.55;
+  }
+  .name-stroke {
+    opacity: 0;
   }
 }
 
