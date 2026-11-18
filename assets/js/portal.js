@@ -1,9 +1,10 @@
 (function () {
   "use strict";
 
-  /* CW-PORTAL-BEAUTIFY-R5 — 应用壳 + 作品索引 (App-shell + Work Index)
-     renderShellMeta / renderDetail / renderIndex.
-     Empty: no openPlayer binding, no play control. Do not change works.json. */
+  /* CW-PORTAL-BEAUTIFY-R5 — 滚动叙事版 R7 质感打磨（2026-11-11 用户定调：高级感）
+     hero 逐字入场 → 逐组展区（IntersectionObserver 显现）+ 滚动导航轨 + 展区计数器
+     + 封面可播态（整幅可点）+ 封面/hero 视差 + 继承播放模态。
+     Empty 硬红线：无播钮、封面不可点、不绑 openPlayer、点击不开模态。不改 works.json。 */
 
   var lang = (document.documentElement.getAttribute("data-lang") || "zh").toLowerCase();
   var isZh = lang.indexOf("zh") === 0;
@@ -11,59 +12,48 @@
   var I18N = {
     zh: {
       works: "作品",
-      all: "全部",
+      eyebrow: "课程作品门户 · Coursework Portal",
       playable: "可播放",
       pending: "待提交",
-      slot: "槽位",
       ready: "可播放",
       empty: "待提交",
       broken: "不可播",
       play: "播放",
       brokenCta: "视频不可用",
       websiteReserve: "网页入口，后续开放",
+      scrollHint: "向下滚动，逐组浏览",
       loadFail: "无法加载作品数据（data/works.json）。请用本地 http.server 打开本目录，或检查文件是否存在。",
       videoFailTitle: "视频无法播放",
       videoFailBody: "找不到或无法加载视频文件。请确认 media 路径正确，或改用 python -m http.server 在 portal-video 根目录预览。",
       tasteNote: "Taste 试料，门户自备占位（方法论参考 kuaizengji/taste）",
       close: "关闭",
       loadFailTitle: "加载失败",
-      detailEmpty: "暂无可播放作品",
-      detailEmptyHint: "请从下方作品索引查看各组进度。",
-      viewIndex: "查看作品索引",
-      detailPendingHint: "该组作品尚未提交。",
-      filterLabel: "按状态筛选"
+      railLabel: "跳到"
     },
     en: {
       works: "Works",
-      all: "All",
+      eyebrow: "Coursework Portal · 课程作品门户",
       playable: "Playable",
       pending: "Pending",
-      slot: "Slot",
       ready: "Ready",
       empty: "Pending",
       broken: "Unavailable",
       play: "Play",
       brokenCta: "Unavailable",
       websiteReserve: "Website entry, coming later",
+      scrollHint: "Scroll to browse each group",
       loadFail: "Could not load data/works.json. Open this folder via a local http.server, or check that the file exists.",
       videoFailTitle: "Video cannot play",
       videoFailBody: "The video file is missing or failed to load. Check the media path, or preview with python -m http.server from the portal-video root.",
       tasteNote: "Taste sample, portal-generated placeholder (methodology ref: kuaizengji/taste)",
       close: "Close",
       loadFailTitle: "Load failed",
-      detailEmpty: "No playable work yet",
-      detailEmptyHint: "Use the work index below to review each group's status.",
-      viewIndex: "View work index",
-      detailPendingHint: "This group's work has not been submitted yet.",
-      filterLabel: "Filter by status"
+      railLabel: "Jump to"
     }
   };
   var t = I18N[isZh ? "zh" : "en"];
 
   var allGroups = [];
-  var selectedId = null;
-  var activeFilter = "all"; /* all | playable | pending */
-  /* playable filter includes ready + broken (documented in self-check) */
 
   function pick(obj, zhKey, enKey) {
     return isZh ? (obj[zhKey] || obj[enKey] || "") : (obj[enKey] || obj[zhKey] || "");
@@ -86,6 +76,10 @@
     return s.length >= 2 ? "G" + s : "G" + ("0" + s).slice(-2);
   }
 
+  function slotDigits(n) {
+    return ("0" + String(n || "")).slice(-2);
+  }
+
   function statusLabel(status) {
     if (status === "ready") return t.ready;
     if (status === "broken") return t.broken;
@@ -105,21 +99,6 @@
       norm === "Pending submission" ||
       norm === "Pending"
     );
-  }
-
-  function findGroup(id) {
-    if (!id) return null;
-    for (var i = 0; i < allGroups.length; i++) {
-      if (allGroups[i] && allGroups[i].id === id) return allGroups[i];
-    }
-    return null;
-  }
-
-  function firstReady(groups) {
-    for (var i = 0; i < (groups || []).length; i++) {
-      if ((groups[i].status || "empty") === "ready") return groups[i];
-    }
-    return null;
   }
 
   function countByStatus(groups) {
@@ -160,22 +139,49 @@
     return out;
   }
 
-  /* ── Shell meta (no middle-dot joins) ── */
+  function prefersReducedMotion() {
+    return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  /* ── Hero / 顶栏元信息 ── */
+  function splitTitleChars(titleEl, text) {
+    /* 逐字入场：拆成 span.char，级联延迟；aria 保持整词可读 */
+    titleEl.textContent = "";
+    titleEl.setAttribute("aria-label", text);
+    titleEl.classList.add("has-chars");
+    titleEl.classList.remove("reveal-item");
+    var chars = Array.from(text);
+    chars.forEach(function (ch, i) {
+      var span = document.createElement("span");
+      span.className = "char";
+      span.setAttribute("aria-hidden", "true");
+      span.style.setProperty("--cd", 120 + i * 55 + "ms");
+      span.textContent = ch;
+      titleEl.appendChild(span);
+    });
+  }
+
   function renderShellMeta(meta, groups) {
     setText("course-title", pick(meta, "course_zh", "course_en"));
-    setText("page-title", t.works);
+    setText("hero-eyebrow", t.eyebrow);
+    setText("scroll-hint-text", t.scrollHint);
+
+    var titleEl = document.getElementById("page-title");
+    if (titleEl) {
+      if (prefersReducedMotion()) {
+        titleEl.textContent = t.works;
+      } else {
+        splitTitleChars(titleEl, t.works);
+      }
+    }
 
     var metaLine = document.getElementById("meta-line");
     if (metaLine) {
       metaLine.innerHTML = "";
       var term = pick(meta, "term_zh", "term_en");
       var instructor = pick(meta, "instructor_zh", "instructor_en");
-      if (term) {
-        metaLine.appendChild(el("span", "meta-item", term));
-      }
-      if (instructor) {
-        metaLine.appendChild(el("span", "meta-item", instructor));
-      }
+      if (term) metaLine.appendChild(el("span", "meta-item", term));
+      if (instructor) metaLine.appendChild(el("span", "meta-item", instructor));
       var metaBits = [term, instructor].filter(Boolean);
       if (metaBits.length) {
         metaLine.setAttribute("aria-label", metaBits.join(isZh ? "，" : ", "));
@@ -186,8 +192,7 @@
     var summary = document.getElementById("work-summary");
     if (summary) {
       summary.innerHTML = "";
-      var readyTag = el("span", "summary-tag", counts.ready + " " + t.playable);
-      summary.appendChild(readyTag);
+      summary.appendChild(el("span", "summary-tag", counts.ready + " " + t.playable));
       if (counts.broken) {
         summary.appendChild(el("span", "summary-tag is-muted", counts.broken + " " + t.broken));
       }
@@ -200,196 +205,284 @@
 
     setText("note-text", pick(meta, "note_zh", "note_en"));
 
-    var filterNav = document.getElementById("index-filter");
-    if (filterNav) {
-      filterNav.setAttribute("aria-label", t.filterLabel);
-      var buttons = filterNav.querySelectorAll("button[data-filter]");
-      for (var i = 0; i < buttons.length; i++) {
-        var btn = buttons[i];
-        var key = btn.getAttribute("data-filter");
-        if (key === "all") btn.textContent = t.all;
-        else if (key === "playable") btn.textContent = t.playable;
-        else if (key === "pending") btn.textContent = t.pending;
-      }
-    }
+    var counterTotal = document.getElementById("counter-total");
+    if (counterTotal) counterTotal.textContent = slotDigits(groups.length);
   }
 
-  /* ── Detail inspector ── */
-  function renderDetail(selected) {
-    var root = document.getElementById("work-detail");
-    if (!root) return;
-    root.innerHTML = "";
+  /* ── 逐组展区 ── */
+  var PLAY_SVG =
+    '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">' +
+    '<path d="M3.5 2.2v7.6L10 6 3.5 2.2Z" fill="currentColor"/></svg>';
 
-    if (!selected) {
-      var empty = el("div", "detail-empty");
-      empty.id = "detail-empty";
-      empty.appendChild(el("p", "detail-empty-title", t.detailEmpty));
-      empty.appendChild(el("p", "detail-empty-hint", t.detailEmptyHint));
-      var link = el("a", null, t.viewIndex);
-      link.href = "#work-index";
-      empty.appendChild(link);
-      root.appendChild(empty);
-      return;
-    }
+  function buildSection(group, total) {
+    var status = group.status || "empty";
+    var section = el("article", "work-section is-" + status);
+    section.id = "work-" + (group.id || "");
+    section.setAttribute("data-id", group.id || "");
+    section.setAttribute("data-status", status);
 
-    var status = selected.status || "empty";
+    var ghost = el("span", "section-ghost", slotDigits(group.slot));
+    ghost.setAttribute("aria-hidden", "true");
+    section.appendChild(ghost);
 
-    if (status === "empty") {
-      var pending = el("div", "detail-pending");
-      pending.appendChild(el("p", "detail-slot", padSlot(selected.slot)));
-      pending.appendChild(el("h2", "detail-title", pick(selected, "name_zh", "name_en")));
-      pending.appendChild(el("p", "detail-status", t.empty));
-      pending.appendChild(el("p", "detail-hint", t.detailPendingHint));
-      pending.appendChild(el("p", "website-reserve", t.websiteReserve));
-      root.appendChild(pending);
-      return;
-    }
+    var inner = el("div", "section-inner");
 
-    var card = el("div", "detail-card is-" + status);
-
-    var cover = el("div", "detail-cover");
-    var img = document.createElement("img");
-    img.src = selected.cover || "assets/img/placeholder-cover.svg";
-    img.alt = "";
-    cover.appendChild(img);
-    card.appendChild(cover);
-
-    var info = el("div", "detail-info");
-    info.appendChild(el("p", "detail-slot", padSlot(selected.slot)));
-    info.appendChild(el("h2", "detail-title", pick(selected, "title_zh", "title_en")));
-    info.appendChild(el("p", "detail-group", pick(selected, "name_zh", "name_en")));
-    info.appendChild(el("p", "detail-status", statusLabel(status)));
-
-    var playBtn = el("button", "selected-play");
-    playBtn.type = "button";
-    playBtn.id = "selected-play";
-    playBtn.textContent = status === "ready" ? t.play : t.brokenCta;
-    playBtn.setAttribute(
-      "aria-label",
-      (status === "ready" ? t.play : t.brokenCta) + " " + pick(selected, "title_zh", "title_en")
+    var metaCol = el("div", "section-meta");
+    var slot = el("p", "section-slot");
+    slot.style.setProperty("--d", "0ms");
+    slot.appendChild(el("span", "slot-code", padSlot(group.slot)));
+    slot.appendChild(
+      el("span", "slot-count", "— " + slotDigits(group.slot) + " / " + slotDigits(total))
     );
-    playBtn.addEventListener("click", function () {
-      openPlayer(selected, playBtn);
-    });
-    info.appendChild(playBtn);
-    info.appendChild(el("p", "website-reserve", t.websiteReserve));
-
-    card.appendChild(info);
-    root.appendChild(card);
-  }
-
-  /* ── Index rows ── */
-  function rowMatchesFilter(group, filter) {
-    var status = group.status || "empty";
-    if (filter === "playable") return isPlayableStatus(status);
-    if (filter === "pending") return status === "empty";
-    return true;
-  }
-
-  function buildWorkRow(group) {
-    var status = group.status || "empty";
-    var row = el("div", "work-row is-" + status);
-    row.setAttribute("role", "listitem");
-    row.setAttribute("data-id", group.id || "");
-    row.setAttribute("data-slot", String(group.slot || ""));
-    row.setAttribute("data-status", status);
-    if (selectedId && group.id === selectedId) {
-      row.classList.add("is-selected");
-    }
-
-    row.appendChild(el("span", "row-slot", padSlot(group.slot)));
-    row.appendChild(el("span", "row-name", pick(group, "name_zh", "name_en")));
+    var name = el("h2", "section-name", pick(group, "name_zh", "name_en"));
+    name.style.setProperty("--d", "70ms");
+    metaCol.appendChild(slot);
+    metaCol.appendChild(name);
 
     var title = pick(group, "title_zh", "title_en");
-    if (status === "empty" && isDuplicateEmptyTitle(title)) {
-      row.appendChild(el("span", "row-title is-blank", ""));
-    } else {
-      row.appendChild(el("span", "row-title", title));
+    if (!(status === "empty" && isDuplicateEmptyTitle(title))) {
+      var titleP = el("p", "section-title", title);
+      titleP.style.setProperty("--d", "130ms");
+      metaCol.appendChild(titleP);
     }
 
-    row.appendChild(el("span", "row-status", statusLabel(status)));
+    var statusP = el("p", "section-status", statusLabel(status));
+    statusP.style.setProperty("--d", "190ms");
+    metaCol.appendChild(statusP);
 
-    var action = el("div", "row-action");
     if (isPlayableStatus(status)) {
-      var btn = el("button", "row-play");
+      var btn = el("button", "section-play");
       btn.type = "button";
-      btn.textContent = status === "ready" ? t.play : t.brokenCta;
+      btn.style.setProperty("--d", "250ms");
+      btn.innerHTML = PLAY_SVG + "<span></span>";
+      btn.querySelector("span").textContent = status === "ready" ? t.play : t.brokenCta;
       btn.setAttribute(
         "aria-label",
         (status === "ready" ? t.play : t.brokenCta) + " " + pick(group, "title_zh", "title_en")
       );
-      btn.addEventListener("click", function (ev) {
-        ev.stopPropagation();
-        selectWork(group);
-        var liveBtn = document.querySelector(
-          '.work-row[data-id="' + (group.id || "") + '"] .row-play'
-        );
-        openPlayer(group, liveBtn || btn);
+      btn.addEventListener("click", function () {
+        openPlayer(group, btn);
       });
-      action.appendChild(btn);
+      metaCol.appendChild(btn);
+    }
+
+    var reserve = el("p", "website-reserve", t.websiteReserve);
+    reserve.style.setProperty("--d", "300ms");
+    metaCol.appendChild(reserve);
+
+    var coverCol = el("div", "section-cover");
+    if (isPlayableStatus(status)) {
+      /* 封面即播钮：整幅可点，悬停浮出提示 */
+      var frame = el("button", "cover-frame");
+      frame.type = "button";
+      frame.setAttribute(
+        "aria-label",
+        (status === "ready" ? t.play : t.brokenCta) + " " + title
+      );
+      var img = document.createElement("img");
+      img.src = group.cover || "assets/img/placeholder-cover.svg";
+      img.alt = "";
+      img.loading = "lazy";
+      frame.appendChild(img);
+      var hint = el("span", "cover-playhint");
+      hint.setAttribute("aria-hidden", "true");
+      hint.innerHTML = PLAY_SVG + "<span></span>";
+      hint.querySelector("span").textContent = status === "ready" ? t.play : t.brokenCta;
+      frame.appendChild(hint);
+      frame.addEventListener("click", function () {
+        openPlayer(group, frame);
+      });
+      coverCol.appendChild(frame);
     } else {
-      row.setAttribute("aria-disabled", "true");
+      var pending = el("div", "cover-pending");
+      pending.appendChild(el("span", "pending-slot", padSlot(group.slot)));
+      pending.appendChild(el("span", "pending-label", t.empty));
+      coverCol.appendChild(pending);
     }
-    row.appendChild(action);
 
-    row.addEventListener("click", function () {
-      selectWork(group);
-    });
-
-    return row;
+    inner.appendChild(metaCol);
+    inner.appendChild(coverCol);
+    section.appendChild(inner);
+    return section;
   }
 
-  function renderIndex(groups, filter) {
-    var list = document.getElementById("work-list");
-    if (!list) return;
-    list.innerHTML = "";
+  function renderSections(groups) {
+    var track = document.getElementById("works-track");
+    if (!track) return;
+    track.innerHTML = "";
     (groups || []).forEach(function (g) {
-      var row = buildWorkRow(g);
-      if (!rowMatchesFilter(g, filter || "all")) {
-        row.hidden = true;
-      }
-      list.appendChild(row);
+      track.appendChild(buildSection(g, groups.length));
     });
   }
 
-  function syncFilterButtons() {
-    var filterNav = document.getElementById("index-filter");
-    if (!filterNav) return;
-    var buttons = filterNav.querySelectorAll("button[data-filter]");
-    for (var i = 0; i < buttons.length; i++) {
-      var on = buttons[i].getAttribute("data-filter") === activeFilter;
-      buttons[i].setAttribute("aria-pressed", on ? "true" : "false");
-      if (on) buttons[i].classList.add("is-active");
-      else buttons[i].classList.remove("is-active");
+  /* ── 滚动导航轨 ── */
+  function renderRail(groups) {
+    var rail = document.getElementById("works-rail");
+    if (!rail) return;
+    rail.innerHTML = "";
+    (groups || []).forEach(function (g) {
+      var btn = el("button", "rail-item");
+      btn.type = "button";
+      btn.setAttribute("data-target", "work-" + (g.id || ""));
+      btn.setAttribute("aria-label", t.railLabel + " " + padSlot(g.slot));
+      btn.appendChild(el("span", "rail-label", padSlot(g.slot)));
+      btn.addEventListener("click", function () {
+        var target = document.getElementById("work-" + (g.id || ""));
+        if (!target) return;
+        target.scrollIntoView({
+          behavior: prefersReducedMotion() ? "auto" : "smooth",
+          block: "center"
+        });
+      });
+      rail.appendChild(btn);
+    });
+  }
+
+  /* ── 显现观察器 ── */
+  function wireReveal() {
+    var hero = document.getElementById("hero");
+    if (prefersReducedMotion() || !("IntersectionObserver" in window)) {
+      if (hero) hero.classList.add("is-visible");
+      var all = document.querySelectorAll(".work-section");
+      for (var i = 0; i < all.length; i++) all[i].classList.add("is-visible");
+      return;
+    }
+    var sections = Array.prototype.slice.call(document.querySelectorAll(".work-section"));
+    /* 快速长滚可能让中间展区达不到阈值而被跳过、回滚时仍隐形：
+       任一展区显现时，把它之前的所有展区一并补亮（单调推进，终态必可见）。 */
+    function revealUpTo(idx) {
+      for (var i = 0; i <= idx; i++) {
+        if (!sections[i].classList.contains("is-visible")) {
+          sections[i].classList.add("is-visible");
+        }
+        io.unobserve(sections[i]);
+      }
+    }
+    var io = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            revealUpTo(sections.indexOf(entry.target));
+          }
+        });
+      },
+      { threshold: 0.08, rootMargin: "0px 0px -8% 0px" }
+    );
+    sections.forEach(function (s) {
+      io.observe(s);
+    });
+    if (hero) {
+      var showHero = function () {
+        hero.classList.add("is-visible");
+      };
+      requestAnimationFrame(function () {
+        requestAnimationFrame(showHero);
+      });
+      /* rAF 在后台标签页不触发；定时兜底保证 hero 终态可见 */
+      setTimeout(showHero, 500);
     }
   }
 
-  function selectWork(group) {
-    if (!group) return;
-    selectedId = group.id || null;
-    renderDetail(group);
-    renderIndex(allGroups, activeFilter);
+  /* ── 滚动：进度条 + 导航高亮 + 计数器 + 视差（rAF 合帧） ── */
+  function wireScroll() {
+    var bar = document.getElementById("site-bar");
+    var progress = document.getElementById("scroll-progress");
+    var hero = document.getElementById("hero");
+    var counterCurrent = document.getElementById("counter-current");
+    var ticking = false;
+
+    function update() {
+      ticking = false;
+      var y = window.scrollY || 0;
+
+      if (bar) {
+        if (y > 8) bar.classList.add("is-scrolled");
+        else bar.classList.remove("is-scrolled");
+      }
+
+      if (progress) {
+        var max = document.documentElement.scrollHeight - window.innerHeight;
+        var ratio = max > 0 ? Math.min(1, y / max) : 0;
+        progress.style.transform = "scaleX(" + ratio.toFixed(4) + ")";
+      }
+
+      /* Hero 描边字缓漂：比页面滚得慢，制造纵深 */
+      if (hero && !prefersReducedMotion() && y < window.innerHeight * 1.2) {
+        hero.style.setProperty("--hero-drift", (y * 0.09).toFixed(1) + "px");
+      }
+
+      /* 导航高亮 + 计数器：穿过视口中线的展区 */
+      var sections = document.querySelectorAll(".work-section");
+      var mid = window.innerHeight * 0.45;
+      var activeId = null;
+      var activeIdx = -1;
+      for (var i = 0; i < sections.length; i++) {
+        var r = sections[i].getBoundingClientRect();
+        if (r.top <= mid && r.bottom >= mid) {
+          activeId = sections[i].id;
+          activeIdx = i;
+          break;
+        }
+        if (r.top < mid) {
+          activeId = sections[i].id;
+          activeIdx = i;
+        }
+      }
+      var items = document.querySelectorAll(".rail-item");
+      for (var j = 0; j < items.length; j++) {
+        var on = items[j].getAttribute("data-target") === activeId;
+        if (on) {
+          items[j].classList.add("is-active");
+          items[j].setAttribute("aria-current", "true");
+        } else {
+          items[j].classList.remove("is-active");
+          items[j].removeAttribute("aria-current");
+        }
+      }
+      if (counterCurrent && activeIdx >= 0) {
+        counterCurrent.textContent = slotDigits(activeIdx + 1);
+      }
+
+      /* 视差：巨号 + 封面，只动装饰/容器，不与显现动画（transform 无关属性）冲突 */
+      if (!prefersReducedMotion()) {
+        for (var k = 0; k < sections.length; k++) {
+          var rect = sections[k].getBoundingClientRect();
+          if (rect.bottom < 0 || rect.top > window.innerHeight) continue;
+          var p = (rect.top + rect.height / 2 - window.innerHeight / 2) / window.innerHeight;
+          var ghost = sections[k].querySelector(".section-ghost");
+          if (ghost) {
+            ghost.style.transform = "translateY(calc(-50% + " + (p * 42).toFixed(1) + "px))";
+          }
+          var frame = sections[k].querySelector(".cover-frame");
+          if (frame) {
+            frame.style.transform = "translateY(" + (p * -16).toFixed(1) + "px)";
+          }
+          var pending = sections[k].querySelector(".cover-pending");
+          if (pending) {
+            pending.style.transform = "translateY(" + (p * -10).toFixed(1) + "px)";
+          }
+        }
+      }
+    }
+
+    function onScroll() {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(update);
+      }
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    update();
   }
 
-  function wireFilter() {
-    var filterNav = document.getElementById("index-filter");
-    if (!filterNav) return;
-    filterNav.addEventListener("click", function (ev) {
-      var btn = ev.target.closest("button[data-filter]");
-      if (!btn) return;
-      var next = btn.getAttribute("data-filter") || "all";
-      activeFilter = next;
-      syncFilterButtons();
-      renderIndex(allGroups, activeFilter);
-    });
-  }
-
-  /* ── Modal (ported from R4: Esc / backdrop / focus restore / fail-box) ── */
+  /* ── 模态（继承契约：Esc / backdrop / 还焦 / fail-box） ── */
   var modal, videoEl, failEl, titleEl, subEl;
   var lastTrigger = null;
   var modalBusy = false;
   var closeTimer = null;
-  var MOTION_MS = 180; /* modal opacity ≤200ms */
+  var MOTION_MS = 150;
 
   function cacheModal() {
     modal = document.getElementById("player-modal");
@@ -397,10 +490,6 @@
     failEl = document.getElementById("player-fail");
     titleEl = document.getElementById("player-title");
     subEl = document.getElementById("player-sub");
-  }
-
-  function prefersReducedMotion() {
-    return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }
 
   function showFail(detail) {
@@ -434,7 +523,7 @@
     cacheModal();
     if (!modal) return;
     var status = group.status || "empty";
-    if (status === "empty") return; /* hard red line: never open for Empty */
+    if (status === "empty") return; /* 硬红线：Empty 永不开播 */
     if (!isPlayableStatus(status)) return;
     if (modalBusy || modal.classList.contains("is-open")) return;
     modalBusy = true;
@@ -575,23 +664,24 @@
   }
 
   function showLoadError(msg) {
-    var mount = document.getElementById("workspace") || document.querySelector("main");
-    if (!mount) return;
-    var detail = document.getElementById("work-detail");
-    var list = document.getElementById("work-list");
-    if (detail) detail.innerHTML = "";
-    if (list) list.innerHTML = "";
+    var track = document.getElementById("works-track");
+    if (!track) return;
     var box = el("div", "fail-box");
+    box.style.margin = "48px auto";
+    box.style.maxWidth = "42rem";
     box.appendChild(el("strong", null, t.loadFailTitle));
     box.appendChild(el("p", null, msg || t.loadFail));
-    var wrap = mount.querySelector(".wrap") || mount;
-    wrap.appendChild(box);
+    track.appendChild(box);
+    var hero = document.getElementById("hero");
+    if (hero) hero.classList.add("is-visible");
   }
 
   function boot() {
+    /* 显现系统的隐藏起点只在 JS 在场时启用；无 JS 全量可见 */
+    if (!prefersReducedMotion()) {
+      document.body.classList.add("js-reveal");
+    }
     wireModal();
-    wireFilter();
-    syncFilterButtons();
     var closeBtn = document.getElementById("player-close");
     if (closeBtn) closeBtn.setAttribute("aria-label", t.close);
 
@@ -603,10 +693,10 @@
       .then(function (data) {
         allGroups = ensureTenSlots(data.groups || []);
         renderShellMeta(data.meta || {}, allGroups);
-        var ready = firstReady(allGroups);
-        selectedId = ready ? ready.id : null;
-        renderDetail(ready);
-        renderIndex(allGroups, activeFilter);
+        renderSections(allGroups);
+        renderRail(allGroups);
+        wireReveal();
+        wireScroll();
       })
       .catch(function (err) {
         showLoadError(t.loadFail + (err && err.message ? " [" + err.message + "]" : ""));

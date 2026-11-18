@@ -1,0 +1,9 @@
+{
+  "name": "classwork-video-portal",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Static preview tooling only — the site itself is plain HTML/CSS/JS, no build step.",
+  "scripts": {
+    "dev": "node dev-server.mjs"
+  }
+}

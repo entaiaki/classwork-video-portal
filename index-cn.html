@@ -4,9 +4,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>班作品视频门户（中文）</title>
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="assets/css/portal.css" />
 </head>
 <body>
+  <div class="grain" aria-hidden="true"></div>
+
   <div id="app-shell">
     <header id="site-bar" class="site-bar">
       <div class="wrap site-bar-inner">
@@ -17,41 +20,41 @@
             <span class="current">中</span>
             <a href="index.html">EN</a>
           </div>
-          <a class="nav-works" href="#work-index">作品</a>
+          <a class="nav-works" href="#works-track">作品</a>
         </nav>
       </div>
+      <div id="scroll-progress" aria-hidden="true"></div>
     </header>
 
     <main id="workspace">
-      <div class="wrap">
-        <header id="page-header">
-          <h1 id="page-title">作品</h1>
-          <p id="work-summary"></p>
-          <p id="note-text" class="note-text">本门户本阶段展示各组视频作品；网页入口后续开放。</p>
-        </header>
-
-        <div class="workspace-body">
-          <section id="work-detail" aria-live="polite">
-            <!-- filled by portal.js: Ready inspector, Empty pending, or #detail-empty -->
-          </section>
-
-          <section id="work-index" aria-labelledby="page-title">
-            <nav id="index-filter" aria-label="按状态筛选">
-              <button type="button" data-filter="all" aria-pressed="true">全部</button>
-              <button type="button" data-filter="playable" aria-pressed="false">可播放</button>
-              <button type="button" data-filter="pending" aria-pressed="false">待提交</button>
-            </nav>
-            <div id="work-list" class="work-list" role="list">
-              <!-- filled by portal.js: 10 × .work-row -->
-            </div>
-          </section>
+      <section id="hero" aria-labelledby="page-title">
+        <div class="wrap hero-inner">
+          <p id="hero-eyebrow" class="reveal-item">课程作品门户</p>
+          <h1 id="page-title" class="reveal-item">作品</h1>
+          <p id="work-summary" class="reveal-item"></p>
+          <p id="note-text" class="note-text reveal-item">本门户本阶段展示各组视频作品；网页入口后续开放。</p>
+          <p id="scroll-hint" class="reveal-item" aria-hidden="true">
+            <span class="hint-line" aria-hidden="true"></span>
+            <span id="scroll-hint-text">向下滚动，逐组浏览</span>
+          </p>
         </div>
+      </section>
+
+      <div id="works-track">
+        <!-- filled by portal.js: 10 × article.work-section -->
       </div>
     </main>
 
+    <nav id="works-rail" aria-label="作品导航">
+      <!-- filled by portal.js: 10 × button.rail-item -->
+    </nav>
+
+    <p id="section-counter" aria-hidden="true"><span id="counter-current">01</span><span class="counter-sep">/</span><span id="counter-total">10</span></p>
+
     <footer class="site-footer">
       <div class="wrap">
-        <p>CW-PORTAL-VIDEO-20261109-01 — 本阶段只挂视频 — 公开 Pages / 发群须用户批</p>
+        <p class="footer-line">CW-PORTAL-VIDEO-20261109-01 — 本阶段只挂视频 — 公开 Pages / 发群须用户批</p>
+        <p class="footer-mark" aria-hidden="true">CLASSWORK</p>
       </div>
     </footer>
   </div>
