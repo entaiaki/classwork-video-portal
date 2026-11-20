@@ -5,49 +5,179 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>班作品视频门户（中文）</title>
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
+  <script>
+    (function () {
+      var q = new URLSearchParams(location.search);
+      var themes = { paper: 1, geometry: 1, stage: 1, editorial: 1 };
+      var v = (q.get("v") || "").toLowerCase();
+      if (!themes[v]) v = "paper";
+      document.documentElement.setAttribute("data-theme", v);
+      var c = (q.get("c") || "").toLowerCase();
+      if (c !== "light" && c !== "dark") c = v === "editorial" ? "dark" : "";
+      if (c) document.documentElement.setAttribute("data-contrast", c);
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Serif+SC:wght@600;700&family=Oswald:wght@500;600&family=Outfit:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" />
   <link rel="stylesheet" href="assets/css/portal.css" />
+  <link rel="stylesheet" href="assets/css/theme-paper.css" />
+  <link rel="stylesheet" href="assets/css/theme-geometry.css" />
+  <link rel="stylesheet" href="assets/css/theme-stage.css" />
+  <link rel="stylesheet" href="assets/css/theme-editorial.css" />
 </head>
 <body>
   <div class="grain" aria-hidden="true"></div>
 
   <div id="app-shell">
     <header id="site-bar" class="site-bar">
+      <svg id="line-field" class="line-field" viewBox="0 0 1200 72" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 26 C 160 6, 300 58, 520 28 S 860 6, 1200 32" />
+        <path d="M0 46 C 150 68, 390 20, 640 48 S 980 72, 1200 42" />
+        <path d="M0 16 C 220 34, 470 2, 760 22 S 1020 46, 1200 18" />
+      </svg>
       <div class="wrap site-bar-inner">
-        <p id="site-brand"><span id="course-title">课程标题加载中…</span></p>
-        <p id="meta-line">学期 教师</p>
-        <nav id="site-nav">
+        <div class="brand-block">
+          <p id="site-brand"><span id="course-title">课程标题加载中…</span></p>
+          <p id="meta-line">学期 教师</p>
+        </div>
+        <nav id="version-switch" class="version-switch" aria-label="版本 Version">
+          <a href="?v=paper" data-v="paper"><span class="v-zh">纸面</span><span class="v-en">Paper</span></a>
+          <a href="?v=geometry" data-v="geometry"><span class="v-zh">几何</span><span class="v-en">Geometry</span></a>
+          <a href="?v=stage" data-v="stage"><span class="v-zh">舞台</span><span class="v-en">Stage</span></a>
+          <a href="?v=editorial" data-v="editorial"><span class="v-zh">编辑</span><span class="v-en">Editorial</span></a>
+        </nav>
+        <div class="bar-tools">
+          <div id="index-filter" class="index-filter" role="group" aria-label="筛选">
+            <button type="button" data-filter="all" aria-pressed="true">全部</button>
+            <button type="button" data-filter="playable" aria-pressed="false">可播放</button>
+            <button type="button" data-filter="pending" aria-pressed="false">待提交</button>
+          </div>
+          <div id="contrast-switch" class="contrast-switch" role="group" aria-label="对比">
+            <button type="button" data-c="light" aria-pressed="false">纸</button>
+            <button type="button" data-c="dark" aria-pressed="true">墨</button>
+          </div>
+          <a class="bar-cta" id="bar-cta" href="#showreel">查看作品</a>
           <div class="lang-switch" aria-label="语言">
             <span class="current">中</span>
-            <a href="index.html">EN</a>
+            <a href="index.html" data-lang-target="en">EN</a>
           </div>
-          <a class="nav-works" href="#works-track">作品</a>
-        </nav>
+        </div>
       </div>
       <div id="scroll-progress" aria-hidden="true"></div>
     </header>
 
     <main id="workspace">
       <section id="hero" aria-labelledby="page-title">
-        <div class="wrap hero-inner">
-          <p id="hero-eyebrow" class="reveal-item">课程作品门户</p>
-          <h1 id="page-title" class="reveal-item">作品</h1>
-          <p id="work-summary" class="reveal-item"></p>
-          <p id="note-text" class="note-text reveal-item">本门户本阶段展示各组视频作品；网页入口后续开放。</p>
-          <p id="scroll-hint" class="reveal-item" aria-hidden="true">
-            <span class="hint-line" aria-hidden="true"></span>
-            <span id="scroll-hint-text">向下滚动，逐组浏览</span>
-          </p>
+        <div class="wrap hero-layout">
+          <div class="hero-copy">
+            <p class="stage-kicker" id="stage-kicker"><span class="kicker-num">#01</span> <span id="kicker-label">CLASSWORK</span></p>
+            <p id="hero-eyebrow" class="reveal-item">课程作品门户</p>
+            <div class="title-block">
+              <h1 id="page-title" class="reveal-item">作品</h1>
+              <p class="title-echo" id="title-echo" aria-hidden="true">作品</p>
+            </div>
+            <p id="work-summary" class="reveal-item"></p>
+            <div class="note-block" id="note-block">
+              <button type="button" id="note-toggle" class="note-toggle" aria-expanded="false" aria-controls="note-text">
+                <span class="note-kicker">#04</span>
+                <span id="note-toggle-label">说明</span>
+              </button>
+              <p id="note-text" class="note-text">本门户本阶段展示各组视频作品；网页入口后续开放。</p>
+            </div>
+            <div class="hero-actions">
+              <a class="hero-cta" id="hero-cta" href="#showreel">查看作品</a>
+              <p id="scroll-hint" class="reveal-item" aria-hidden="true">
+                <span class="hint-line" aria-hidden="true"></span>
+                <span id="scroll-hint-text">向下滚动，逐组浏览</span>
+              </p>
+            </div>
+          </div>
+          <div class="hero-aside">
+            <div class="paper-tiles" id="paper-tiles">
+              <button type="button" class="paper-tile tile-a" data-filter="playable">
+                <span class="tile-no">01</span>
+                <span class="tile-zh">可播放</span>
+                <span class="tile-en">Playable</span>
+                <span class="tile-arrow" aria-hidden="true">→</span>
+              </button>
+              <button type="button" class="paper-tile tile-b" data-filter="pending">
+                <span class="tile-no">02</span>
+                <span class="tile-zh">待提交</span>
+                <span class="tile-en">Pending</span>
+                <span class="tile-arrow" aria-hidden="true">→</span>
+              </button>
+              <button type="button" class="paper-tile tile-c" data-go="showreel">
+                <span class="tile-no">03</span>
+                <span class="tile-zh">试映</span>
+                <span class="tile-en">Sample</span>
+                <span class="tile-arrow" aria-hidden="true">→</span>
+              </button>
+              <button type="button" class="paper-tile tile-d" data-filter="all" data-go="works">
+                <span class="tile-no">04</span>
+                <span class="tile-zh">组别</span>
+                <span class="tile-en">Groups</span>
+                <span class="tile-arrow" aria-hidden="true">→</span>
+              </button>
+            </div>
+            <div class="geo-assembly" aria-hidden="true">
+              <span class="geo geo-pill-v"></span>
+              <span class="geo geo-ring"></span>
+              <span class="geo geo-circle"></span>
+              <span class="geo geo-pill-h"></span>
+              <span class="geo geo-dot"></span>
+              <span class="geo geo-slab"></span>
+            </div>
+          </div>
         </div>
       </section>
 
-      <div id="works-track">
-        <!-- filled by portal.js: 10 × article.work-section -->
+      <div id="paper-reel" class="paper-reel" role="region" aria-labelledby="reel-label">
+        <div class="wrap">
+          <div class="reel-head">
+            <p id="reel-label">试映条</p>
+            <div class="reel-progress" aria-hidden="true"><span id="reel-bar"></span></div>
+          </div>
+          <div id="reel-track" class="reel-track"></div>
+        </div>
+      </div>
+
+      <section id="showreel" class="showreel wrap" aria-labelledby="showreel-title">
+        <div class="showreel-stage">
+          <button type="button" class="cover-frame" id="showreel-play" hidden>
+            <span class="cover-media"><img id="showreel-img" alt="" /></span>
+            <span class="cover-playhint" id="showreel-hint" aria-hidden="true"></span>
+          </button>
+          <div class="cover-pending showreel-empty" id="showreel-empty" hidden>
+            <span class="pending-slot" id="showreel-empty-slot"></span>
+            <span class="pending-label" id="showreel-empty-label"></span>
+          </div>
+        </div>
+        <div class="showreel-copy">
+          <p class="showreel-kicker" id="showreel-kicker">#01</p>
+          <h2 id="showreel-title">试映</h2>
+          <p class="showreel-sub" id="showreel-sub"></p>
+          <p class="showreel-status" id="showreel-status"></p>
+          <div class="showreel-actions">
+            <button type="button" class="section-play" id="showreel-cta" hidden>播放</button>
+            <div class="pager" role="group" aria-label="上一组与下一组">
+              <button type="button" id="showreel-prev">上一组</button>
+              <button type="button" id="showreel-next">下一组</button>
+            </div>
+          </div>
+          <p class="website-reserve" id="showreel-reserve">网页入口，后续开放</p>
+        </div>
+      </section>
+
+      <div id="works-band" class="works-band">
+        <div class="wrap band-head">
+          <p class="band-kicker"><span class="kicker-num">#02</span> <span id="band-label">组别</span></p>
+        </div>
+        <div id="works-track"></div>
       </div>
     </main>
 
-    <nav id="works-rail" aria-label="作品导航">
-      <!-- filled by portal.js: 10 × button.rail-item -->
-    </nav>
+    <nav id="works-rail" aria-label="作品导航"></nav>
 
     <p id="section-counter" aria-hidden="true"><span id="counter-current">01</span><span class="counter-sep">/</span><span id="counter-total">10</span></p>
 
@@ -63,11 +193,18 @@
     <div id="player-backdrop" class="modal-backdrop" aria-hidden="true"></div>
     <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="player-title">
       <div class="modal-head">
-        <div>
+        <div class="modal-titles">
+          <p class="modal-kicker" id="player-kicker">#01</p>
           <h3 id="player-title">视频</h3>
           <p class="modal-sub" id="player-sub"></p>
         </div>
-        <button type="button" id="player-close" class="modal-close" aria-label="关闭">×</button>
+        <div class="modal-tools">
+          <div class="pager pager-modal" role="group" aria-label="上一组与下一组">
+            <button type="button" id="player-prev">上一组</button>
+            <button type="button" id="player-next">下一组</button>
+          </div>
+          <button type="button" id="player-close" class="modal-close" aria-label="关闭">×</button>
+        </div>
       </div>
       <div class="modal-body">
         <video id="player-video" controls playsinline preload="metadata" hidden></video>
