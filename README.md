@@ -3,15 +3,42 @@
 **Ticket**: CW-PORTAL-VIDEO-20261109-01  
 **Phase**: video-only (website links reserved, not clickable)  
 **Primary demo page**: `index-cn.html`  
-**Current shell (R5)**: 应用壳 + 作品索引 (App-shell + Work Index) — sticky site bar, work inspector, and a 10-slot work index with status filters. Local preview only; do not treat this as a public Pages update.
+**Current shell (R9 preview)**: four themes on the R8 scroll narrative — 纸面 / 几何 / 舞台 / 编辑. Motion (`--sheet` / `--lock`, reveal, pointer, cover-to-player) is kept and reinterpreted per theme. This branch is a comparison draft. **Do not merge it to `main`.** GitHub Pages publishes from `main/`, so a merge would go live before a theme is chosen.
+
+### Theme previews
+
+Switcher in the header. The choice is a query on the static page (no server routes):
+
+| Theme | Query |
+|---|---|
+| 纸面 Paper | `?v=paper` (default) |
+| 几何 Geometry | `?v=geometry` |
+| 舞台 Stage | `?v=stage` |
+| 编辑 Editorial | `?v=editorial` |
+
+Filter and language stay in the URL: `?v=stage&f=playable` on `index-cn.html` or `index.html`. Editorial contrast is `c=dark` (default) or `c=light`.
+
+```text
+http://127.0.0.1:7100/index-cn.html?v=paper
+http://127.0.0.1:7100/index-cn.html?v=geometry
+http://127.0.0.1:7100/index-cn.html?v=stage
+http://127.0.0.1:7100/index.html?v=editorial&c=light
+```
+
+Stage color is original ink-teal `#0e3436` (not a blue brand). Fonts are OFL faces served by Google Fonts (Syne, Plus Jakarta Sans, Oswald, Outfit, Fraunces, Noto Sans SC, Noto Serif SC, IBM Plex Mono).
 
 
 ## Open locally
 
-### Recommended (http.server)
+### Recommended
 
 ```bash
-cd /workspace/coursework/portal-video
+npm run dev
+```
+
+Serves the folder on http://127.0.0.1:7100/ (`/` is the Chinese page). No build step.
+
+```bash
 python -m http.server 8765
 ```
 
@@ -26,7 +53,7 @@ You can open `index-cn.html` directly in a browser. Some browsers block `fetch("
 
 ## Data
 
-The work index and inspector are driven by `data/works.json`:
+The ten work sections are driven by `data/works.json`:
 
 - `meta.*` — course / term / instructor / note (placeholders OK)
 - `groups[]` — exactly 10 slots (`slot` 1–10); `status`: `ready` | `empty` | `broken`

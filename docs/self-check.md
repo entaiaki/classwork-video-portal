@@ -517,3 +517,15 @@ Chrome CDP 复验（http.server :8766，计算样式）：
 
 **DONE** — S-IX4 / S-IA5 过滤可见性已修；请调度再派质核只复审 FAIL 项。
 
+---
+
+## R8 · scroll narrative + center-lock motion
+
+**Baseline**: Kimi R7 (`index-cn.html` `47317cee`, `index.html` `5d4bf2a6`, `portal.css` `bda6e9ce`, `portal.js` `2a3eef40`). GitHub `main` at `7ffae5e6` was still the R5 app-shell and was not used as the visual baseline.
+
+**Structure kept**: hero → `#works-track` (10 alternating sections) → `#works-rail` → `#section-counter` → footer → `#player-modal`.
+
+**Motion**: one `--sheet` / `--lock` progress (CSS `view()` timeline, JS rAF if unsupported). Center lock resolves the hairline, slot color, and outline echo; the cover image and ghost index move on that same progress. Pointer inertia is limited to the hovered cover and the play button. The player FLIPs from the cover rectangle. `prefers-reduced-motion` forces the rest pose.
+
+**Unchanged**: `data/works.json` sha `d1dad598`. Empty covers stay non-buttons. `website_url` stays grey reserve copy. Player ids unchanged. No React, no runtime CDN.
+
