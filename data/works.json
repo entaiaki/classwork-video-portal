@@ -1,13 +1,15 @@
 {
   "meta": {
-    "course_zh": "（课程中文名 · 实现用占位，可后改）",
-    "course_en": "Course title placeholder",
-    "term_zh": "学期占位",
-    "term_en": "Term placeholder",
-    "instructor_zh": "任课教师占位",
-    "instructor_en": "Instructor placeholder",
-    "note_zh": "本门户本阶段展示各组视频作品；网页入口后续开放。Taste 试料卡视频为门户自备占位，方法论参考自 kuaizengji/taste。",
-    "note_en": "This portal shows group videos in this phase; website links come later. The Taste sample video is a portal-generated placeholder referencing the kuaizengji/taste methodology."
+    "course_zh": "班作品视频",
+    "course_en": "Class group videos",
+    "term_zh": "",
+    "term_en": "",
+    "instructor_zh": "",
+    "instructor_en": "",
+    "unit_zh": "组别",
+    "unit_en": "Groups",
+    "note_zh": "这件作品展示各组视频；网页入口后续开放。Taste 试料卡视频为门户自备占位，方法论参考自 kuaizengji/taste。",
+    "note_en": "This work shows the group videos; website links come later. The Taste sample video is a portal-generated placeholder referencing the kuaizengji/taste methodology."
   },
   "groups": [
     {

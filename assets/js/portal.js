@@ -1,11 +1,11 @@
 (function () {
   "use strict";
 
-  /* CW-PORTAL R9 — four themes on the R8 narrative.
-     --sheet / --lock still come from view() (or this rAF).
-     Themes reinterpret that progress: paper uncover, geometry timeline,
-     stage header, editorial type echo. Empty never opens the player.
-     works.json is not rewritten. Version + filter live in the query. */
+  /* Work interior — R9 four themes on the R8 narrative.
+     The homepage is separate. This file runs on work.html / work-cn.html.
+     ?w=class loads the ten group slots. ?w=psych loads the affiliated entry
+     and does not invent empty groups. Empty never opens the player.
+     Theme, filter, contrast, and work id live in the query. */
 
   var FLIP_MS = 480;
   var FADE_MS = 240;
@@ -42,7 +42,9 @@
       reel: "试映条",
       note: "说明",
       groups: "组别",
-      sample: "试映"
+      sample: "试映",
+      affiliated: "挂靠",
+      filterEmpty: "此筛选下没有条目"
     },
     en: {
       works: "Works",
@@ -70,10 +72,17 @@
       reel: "Reel",
       note: "Note",
       groups: "Groups",
-      sample: "Sample"
+      sample: "Sample",
+      affiliated: "Affiliated",
+      filterEmpty: "Nothing in this filter"
     }
   };
   var t = I18N[isZh ? "zh" : "en"];
+
+  var WORKS = {
+    class: { file: "data/works.json", pad: true },
+    psych: { file: "data/applied-psychology.json", pad: false }
+  };
 
   var allGroups = [];
   var theme = "paper";
@@ -81,6 +90,7 @@
   var contrast = "dark";
   var contrastChosen = false;
   var featuredId = null;
+  var workId = "class";
 
   var PLAY_SVG =
     '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">' +
@@ -90,6 +100,8 @@
     var q = new URLSearchParams(location.search);
     var v = (q.get("v") || "paper").toLowerCase();
     theme = THEMES[v] ? v : "paper";
+    var w = (q.get("w") || "").toLowerCase();
+    workId = !w ? "class" : (WORKS[w] ? w : "");
     var f = (q.get("f") || "all").toLowerCase();
     filter = f === "playable" || f === "pending" ? f : "all";
     var c = (q.get("c") || "").toLowerCase();
@@ -99,6 +111,7 @@
 
   function queryString() {
     var p = new URLSearchParams();
+    if (workId) p.set("w", workId);
     p.set("v", theme);
     p.set("f", filter);
     if (theme === "editorial") p.set("c", contrast || "dark");
@@ -144,7 +157,13 @@
     return ("0" + String(n || "")).slice(-2);
   }
 
-  function statusLabel(status) {
+  function statusLabel(group) {
+    if (group && typeof group === "object") {
+      var custom = pick(group, "status_zh", "status_en");
+      if (custom) return custom;
+      return statusLabel(group.status || "empty");
+    }
+    var status = group || "empty";
     if (status === "ready") return t.ready;
     if (status === "broken") return t.broken;
     return t.empty;
@@ -252,11 +271,25 @@
     setText("course-title", course);
     var courseEl = document.getElementById("course-title");
     if (courseEl) courseEl.setAttribute("title", course);
-    setText("hero-eyebrow", t.eyebrow);
-    setText("scroll-hint-text", t.scrollHint);
+    setText("hero-eyebrow", course || t.eyebrow);
+    document.title = (course || t.works) + (isZh ? " · 课作门户" : " · Classwork");
+    setText("scroll-hint-text", workId === "psych"
+      ? (isZh ? "向下滚动，查看挂靠条目" : "Scroll to the affiliated entry")
+      : t.scrollHint);
     setText("title-echo", t.works);
     setText("note-toggle-label", t.note);
-    setText("band-label", t.groups);
+    var unit = pick(meta, "unit_zh", "unit_en") || t.groups;
+    setText("band-label", unit);
+    var tileZh = document.querySelector(".tile-d .tile-zh");
+    var tileEn = document.querySelector(".tile-d .tile-en");
+    if (tileZh) tileZh.textContent = meta.unit_zh || (isZh ? "组别" : tileZh.textContent);
+    if (tileEn) tileEn.textContent = meta.unit_en || "Groups";
+    if (workId === "psych") {
+      var entryZh = document.querySelector(".tile-c .tile-zh");
+      var entryEn = document.querySelector(".tile-c .tile-en");
+      if (entryZh) entryZh.textContent = "条目";
+      if (entryEn) entryEn.textContent = "Entry";
+    }
     setText("reel-label", t.reel);
     setText("bar-cta", t.viewWorks);
     setText("hero-cta", t.viewWorks);
@@ -321,13 +354,14 @@
     nameStroke.setAttribute("aria-hidden", "true");
     name.appendChild(nameStroke);
     metaCol.appendChild(slot);
+    if (group.affiliated) metaCol.appendChild(el("p", "section-affil", t.affiliated));
     metaCol.appendChild(name);
 
     var title = pick(group, "title_zh", "title_en");
     if (!(status === "empty" && isDuplicateEmptyTitle(title))) {
       metaCol.appendChild(el("p", "section-title", title));
     }
-    metaCol.appendChild(el("p", "section-status", statusLabel(status)));
+    metaCol.appendChild(el("p", "section-status", statusLabel(group)));
 
     if (isPlayableStatus(status)) {
       var btn = el("button", "section-play");
@@ -369,7 +403,7 @@
     } else {
       var pending = el("div", "cover-pending");
       pending.appendChild(el("span", "pending-slot", padSlot(group.slot)));
-      pending.appendChild(el("span", "pending-label", t.empty));
+      pending.appendChild(el("span", "pending-label", statusLabel(group)));
       coverCol.appendChild(pending);
     }
 
@@ -433,7 +467,9 @@
       } else {
         btn.appendChild(el("span", "reel-fallback", padSlot(g.slot)));
       }
-      btn.appendChild(el("span", "reel-meta", padSlot(g.slot) + "  " + pick(g, "name_zh", "name_en")));
+      var reelLabel = padSlot(g.slot) + "  " + pick(g, "name_zh", "name_en");
+      if (g.affiliated) reelLabel = t.affiliated + "  " + reelLabel;
+      btn.appendChild(el("span", "reel-meta", reelLabel));
       btn.addEventListener("click", function () {
         setFeatured(g.id, { scroll: true });
         if (!isPlayableStatus(status)) return;
@@ -454,14 +490,33 @@
 
   function renderShowreel() {
     var group = groupById(featuredId);
-    if (!group) return;
+    var affil = document.getElementById("showreel-affil");
+    if (!group) {
+      setText("showreel-kicker", "");
+      setText("showreel-title", t.filterEmpty);
+      setText("showreel-sub", "");
+      setText("showreel-status", "");
+      if (affil) affil.hidden = true;
+      setText("showreel-reserve", "");
+      var playGone = document.getElementById("showreel-play");
+      var ctaGone = document.getElementById("showreel-cta");
+      var emptyGone = document.getElementById("showreel-empty");
+      if (playGone) playGone.hidden = true;
+      if (ctaGone) ctaGone.hidden = true;
+      if (emptyGone) emptyGone.hidden = true;
+      return;
+    }
     var status = group.status || "empty";
     var playable = isPlayableStatus(status);
     var title = pick(group, "title_zh", "title_en");
     setText("showreel-kicker", "#" + slotDigits(group.slot));
     setText("showreel-title", title);
     setText("showreel-sub", pick(group, "name_zh", "name_en"));
-    setText("showreel-status", statusLabel(status));
+    setText("showreel-status", statusLabel(group));
+    if (affil) {
+      affil.hidden = !group.affiliated;
+      affil.textContent = t.affiliated;
+    }
     setText("showreel-reserve", t.websiteReserve);
     var img = document.getElementById("showreel-img");
     if (img) {
@@ -490,7 +545,7 @@
     if (empty) {
       empty.hidden = playable;
       setText("showreel-empty-slot", padSlot(group.slot));
-      setText("showreel-empty-label", statusLabel(status));
+      setText("showreel-empty-label", statusLabel(group));
     }
   }
 
@@ -574,6 +629,14 @@
       items[j].hidden = !visible[target.replace(/^work-/, "")];
     }
     markEnds();
+    var trackEmpty = document.getElementById("works-track");
+    if (trackEmpty) {
+      var oldEmpty = trackEmpty.querySelector(".filter-empty");
+      if (oldEmpty) oldEmpty.remove();
+      if (!visibleGroups().length) {
+        trackEmpty.appendChild(el("p", "filter-empty", t.filterEmpty));
+      }
+    }
     if (!visible[featuredId]) {
       var playable = playableVisible();
       var vis = visibleGroups();
@@ -583,8 +646,8 @@
     renderReel();
     markFeatured();
     updatePagers();
-    var total = visibleGroups().length || allGroups.length;
-    setText("counter-total", slotDigits(total));
+    var visCount = visibleGroups().length;
+    setText("counter-total", visCount < 1 ? "00" : slotDigits(visCount));
     revealInView();
   }
 
@@ -602,9 +665,16 @@
     }
     var langs = document.querySelectorAll("[data-lang-target]");
     for (var k = 0; k < langs.length; k++) {
-      var page = langs[k].getAttribute("data-lang-target") === "en" ? "index.html" : "index-cn.html";
+      var page = langs[k].getAttribute("data-lang-target") === "en" ? "work.html" : "work-cn.html";
       langs[k].setAttribute("href", page + "?" + q);
     }
+    var homes = document.querySelectorAll(".home-link");
+    var homePage = isZh ? "index-cn.html" : "index.html";
+    var hp = new URLSearchParams();
+    hp.set("v", theme);
+    if (theme === "editorial") hp.set("c", contrast || "dark");
+    var homeHref = homePage + "?" + hp.toString();
+    for (var h = 0; h < homes.length; h++) homes[h].setAttribute("href", homeHref);
     var filters = document.querySelectorAll("#index-filter button");
     for (var f = 0; f < filters.length; f++) {
       filters[f].setAttribute("aria-pressed", filters[f].getAttribute("data-filter") === filter ? "true" : "false");
@@ -1231,7 +1301,13 @@
         var fkey = this.getAttribute("data-filter");
         if (go === "showreel") {
           setFilter("all");
-          setFeatured("g01");
+          var visNow = visibleGroups();
+          var firstId = null;
+          for (var gi = 0; gi < visNow.length; gi++) {
+            if (isPlayableStatus(visNow[gi].status || "empty")) { firstId = visNow[gi].id; break; }
+          }
+          if (!firstId && visNow[0]) firstId = visNow[0].id;
+          if (firstId) setFeatured(firstId);
           var reel = document.getElementById("showreel");
           if (reel) reel.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "center" });
           return;
@@ -1294,13 +1370,19 @@
     var closeBtn = document.getElementById("player-close");
     if (closeBtn) closeBtn.setAttribute("aria-label", t.close);
 
-    fetch("data/works.json", { cache: "no-store" })
+    if (!WORKS[workId]) {
+      showLoadError(isZh ? "没有这件作品。请从门户重新进入。" : "This work does not exist. Return to the portal and choose a work.");
+      return;
+    }
+    document.documentElement.setAttribute("data-work", workId);
+    fetch(WORKS[workId].file, { cache: "no-store" })
       .then(function (res) {
         if (!res.ok) throw new Error("HTTP " + res.status);
         return res.json();
       })
       .then(function (data) {
-        allGroups = ensureTenSlots(data.groups || []);
+        var groups = data.groups || [];
+        allGroups = WORKS[workId].pad ? ensureTenSlots(groups) : groups.slice();
         renderShellMeta(data.meta || {}, allGroups);
         renderSections(allGroups);
         renderRail(allGroups);
