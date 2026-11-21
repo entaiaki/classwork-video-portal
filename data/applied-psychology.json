@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "course_zh": "应用心理学",
+    "course_en": "Applied Psychology",
+    "term_zh": "",
+    "term_en": "",
+    "instructor_zh": "",
+    "instructor_en": "",
+    "unit_zh": "挂靠",
+    "unit_en": "Affiliated",
+    "note_zh": "作业二挂靠在这件作品下，不是单独的首页作品。文明航程个人作业，AI 辅助写作。目前不是公开成片。",
+    "note_en": "Assignment Two is affiliated under this work, not listed on its own. 文明航程个人作业 — AI-assisted writing. It is not a public film."
+  },
+  "groups": [
+    {
+      "id": "a2",
+      "slot": 1,
+      "name_zh": "文明航程个人作业",
+      "name_en": "文明航程个人作业",
+      "title_zh": "作业二 · AI 辅助写作",
+      "title_en": "Assignment Two · AI-assisted writing",
+      "cover": "assets/img/placeholder-cover.svg",
+      "video": { "kind": "file", "src": null },
+      "website_url": null,
+      "status": "empty",
+      "affiliated": true,
+      "status_zh": "进行中",
+      "status_en": "In progress"
+    }
+  ]
+}

@@ -1,218 +1,187 @@
 <!DOCTYPE html>
-<html lang="en" data-lang="en">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Classwork Video Portal (EN)</title>
+  <meta name="theme-color" content="#0e3436" />
+  <meta name="description" content="Classwork portal. Class group videos and Applied Psychology sit together. Assignment Two is affiliated under Applied Psychology." />
+  <title>Classwork</title>
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
-  <script>
-    (function () {
-      var q = new URLSearchParams(location.search);
-      var themes = { paper: 1, geometry: 1, stage: 1, editorial: 1 };
-      var v = (q.get("v") || "").toLowerCase();
-      if (!themes[v]) v = "paper";
-      document.documentElement.setAttribute("data-theme", v);
-      var c = (q.get("c") || "").toLowerCase();
-      if (c !== "light" && c !== "dark") c = v === "editorial" ? "dark" : "";
-      if (c) document.documentElement.setAttribute("data-contrast", c);
-    })();
-  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Serif+SC:wght@600;700&family=Oswald:wght@500;600&family=Outfit:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" />
-  <link rel="stylesheet" href="assets/css/portal.css" />
-  <link rel="stylesheet" href="assets/css/theme-paper.css" />
-  <link rel="stylesheet" href="assets/css/theme-geometry.css" />
-  <link rel="stylesheet" href="assets/css/theme-stage.css" />
-  <link rel="stylesheet" href="assets/css/theme-editorial.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="assets/css/home.css" />
 </head>
 <body>
+  <a class="skip" href="#works">Skip to works</a>
   <div class="grain" aria-hidden="true"></div>
 
-  <div id="app-shell">
-    <header id="site-bar" class="site-bar">
-      <svg id="line-field" class="line-field" viewBox="0 0 1200 72" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M0 26 C 160 6, 300 58, 520 28 S 860 6, 1200 32" />
-        <path d="M0 46 C 150 68, 390 20, 640 48 S 980 72, 1200 42" />
-        <path d="M0 16 C 220 34, 470 2, 760 22 S 1020 46, 1200 18" />
-      </svg>
-      <div class="wrap site-bar-inner">
-        <div class="brand-block">
-          <p id="site-brand"><span id="course-title">Loading course title…</span></p>
-          <p id="meta-line">Term Instructor</p>
+  <header class="bar" id="bar">
+    <div class="bar-progress" id="bar-progress" aria-hidden="true"></div>
+    <div class="wrap bar-inner">
+      <nav class="bar-nav" aria-label="On this page">
+        <a href="#works">Works</a>
+        <a href="#ledger">Index</a>
+      </nav>
+      <a class="mark" href="index.html">Classwork</a>
+      <div class="bar-end">
+        <p class="carry" id="theme-carry" hidden></p>
+        <div class="lang" aria-label="Language">
+          <a href="index-cn.html" data-lang-target="zh">中</a>
+          <span class="current">EN</span>
         </div>
-        <nav id="version-switch" class="version-switch" aria-label="Version">
-          <a href="?v=paper" data-v="paper"><span class="v-zh">纸面</span><span class="v-en">Paper</span></a>
-          <a href="?v=geometry" data-v="geometry"><span class="v-zh">几何</span><span class="v-en">Geometry</span></a>
-          <a href="?v=stage" data-v="stage"><span class="v-zh">舞台</span><span class="v-en">Stage</span></a>
-          <a href="?v=editorial" data-v="editorial"><span class="v-zh">编辑</span><span class="v-en">Editorial</span></a>
-        </nav>
-        <div class="bar-tools">
-          <div id="index-filter" class="index-filter" role="group" aria-label="Filter">
-            <button type="button" data-filter="all" aria-pressed="true">All</button>
-            <button type="button" data-filter="playable" aria-pressed="false">Playable</button>
-            <button type="button" data-filter="pending" aria-pressed="false">Pending</button>
-          </div>
-          <div id="contrast-switch" class="contrast-switch" role="group" aria-label="Contrast">
-            <button type="button" data-c="light" aria-pressed="false">Paper</button>
-            <button type="button" data-c="dark" aria-pressed="true">Ink</button>
-          </div>
-          <a class="bar-cta" id="bar-cta" href="#showreel">View works</a>
-          <div class="lang-switch" aria-label="Language">
-            <a href="index-cn.html" data-lang-target="zh">中</a>
-            <span class="current">EN</span>
-          </div>
-        </div>
-      </div>
-      <div id="scroll-progress" aria-hidden="true"></div>
-    </header>
-
-    <main id="workspace">
-      <section id="hero" aria-labelledby="page-title">
-        <div class="wrap hero-layout">
-          <div class="hero-copy">
-            <p class="stage-kicker" id="stage-kicker"><span class="kicker-num">#01</span> <span id="kicker-label">CLASSWORK</span></p>
-            <p id="hero-eyebrow" class="reveal-item">Coursework Portal</p>
-            <div class="title-block">
-              <h1 id="page-title" class="reveal-item">Works</h1>
-              <p class="title-echo" id="title-echo" aria-hidden="true">Works</p>
-            </div>
-            <p id="work-summary" class="reveal-item"></p>
-            <div class="note-block" id="note-block">
-              <button type="button" id="note-toggle" class="note-toggle" aria-expanded="false" aria-controls="note-text">
-                <span class="note-kicker">#04</span>
-                <span id="note-toggle-label">Note</span>
-              </button>
-              <p id="note-text" class="note-text">This portal shows group videos in this phase; website links come later.</p>
-            </div>
-            <div class="hero-actions">
-              <a class="hero-cta" id="hero-cta" href="#showreel">View works</a>
-              <p id="scroll-hint" class="reveal-item" aria-hidden="true">
-                <span class="hint-line" aria-hidden="true"></span>
-                <span id="scroll-hint-text">Scroll to browse each group</span>
-              </p>
-            </div>
-          </div>
-          <div class="hero-aside">
-            <div class="paper-tiles" id="paper-tiles">
-              <button type="button" class="paper-tile tile-a" data-filter="playable">
-                <span class="tile-no">01</span>
-                <span class="tile-zh">可播放</span>
-                <span class="tile-en">Playable</span>
-                <span class="tile-arrow" aria-hidden="true">→</span>
-              </button>
-              <button type="button" class="paper-tile tile-b" data-filter="pending">
-                <span class="tile-no">02</span>
-                <span class="tile-zh">待提交</span>
-                <span class="tile-en">Pending</span>
-                <span class="tile-arrow" aria-hidden="true">→</span>
-              </button>
-              <button type="button" class="paper-tile tile-c" data-go="showreel">
-                <span class="tile-no">03</span>
-                <span class="tile-zh">试映</span>
-                <span class="tile-en">Sample</span>
-                <span class="tile-arrow" aria-hidden="true">→</span>
-              </button>
-              <button type="button" class="paper-tile tile-d" data-filter="all" data-go="works">
-                <span class="tile-no">04</span>
-                <span class="tile-zh">组别</span>
-                <span class="tile-en">Groups</span>
-                <span class="tile-arrow" aria-hidden="true">→</span>
-              </button>
-            </div>
-            <div class="geo-assembly" aria-hidden="true">
-              <span class="geo geo-pill-v"></span>
-              <span class="geo geo-ring"></span>
-              <span class="geo geo-circle"></span>
-              <span class="geo geo-pill-h"></span>
-              <span class="geo geo-dot"></span>
-              <span class="geo geo-slab"></span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div id="paper-reel" class="paper-reel" role="region" aria-labelledby="reel-label">
-        <div class="wrap">
-          <div class="reel-head">
-            <p id="reel-label">Reel</p>
-            <div class="reel-progress" aria-hidden="true"><span id="reel-bar"></span></div>
-          </div>
-          <div id="reel-track" class="reel-track"></div>
-        </div>
-      </div>
-
-      <section id="showreel" class="showreel wrap" aria-labelledby="showreel-title">
-        <div class="showreel-stage">
-          <button type="button" class="cover-frame" id="showreel-play" hidden>
-            <span class="cover-media"><img id="showreel-img" alt="" /></span>
-            <span class="cover-playhint" id="showreel-hint" aria-hidden="true"></span>
-          </button>
-          <div class="cover-pending showreel-empty" id="showreel-empty" hidden>
-            <span class="pending-slot" id="showreel-empty-slot"></span>
-            <span class="pending-label" id="showreel-empty-label"></span>
-          </div>
-        </div>
-        <div class="showreel-copy">
-          <p class="showreel-kicker" id="showreel-kicker">#01</p>
-          <h2 id="showreel-title">Sample</h2>
-          <p class="showreel-sub" id="showreel-sub"></p>
-          <p class="showreel-status" id="showreel-status"></p>
-          <div class="showreel-actions">
-            <button type="button" class="section-play" id="showreel-cta" hidden>Play</button>
-            <div class="pager" role="group" aria-label="Previous and next">
-              <button type="button" id="showreel-prev">Previous</button>
-              <button type="button" id="showreel-next">Next</button>
-            </div>
-          </div>
-          <p class="website-reserve" id="showreel-reserve">Website entry, coming later</p>
-        </div>
-      </section>
-
-      <div id="works-band" class="works-band">
-        <div class="wrap band-head">
-          <p class="band-kicker"><span class="kicker-num">#02</span> <span id="band-label">Groups</span></p>
-        </div>
-        <div id="works-track"></div>
-      </div>
-    </main>
-
-    <nav id="works-rail" aria-label="Works navigation"></nav>
-
-    <p id="section-counter" aria-hidden="true"><span id="counter-current">01</span><span class="counter-sep">/</span><span id="counter-total">10</span></p>
-
-    <footer class="site-footer">
-      <div class="wrap">
-        <p class="footer-line">CW-PORTAL-VIDEO-20261109-01 — Video-only phase — Public Pages / sharing require user approval</p>
-        <p class="footer-mark" aria-hidden="true">CLASSWORK</p>
-      </div>
-    </footer>
-  </div>
-
-  <div id="player-modal" class="modal" hidden>
-    <div id="player-backdrop" class="modal-backdrop" aria-hidden="true"></div>
-    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="player-title">
-      <div class="modal-head">
-        <div class="modal-titles">
-          <p class="modal-kicker" id="player-kicker">#01</p>
-          <h3 id="player-title">Video</h3>
-          <p class="modal-sub" id="player-sub"></p>
-        </div>
-        <div class="modal-tools">
-          <div class="pager pager-modal" role="group" aria-label="Previous and next">
-            <button type="button" id="player-prev">Previous</button>
-            <button type="button" id="player-next">Next</button>
-          </div>
-          <button type="button" id="player-close" class="modal-close" aria-label="Close">×</button>
-        </div>
-      </div>
-      <div class="modal-body">
-        <video id="player-video" controls playsinline preload="metadata" hidden></video>
-        <div id="player-fail" class="fail-box" hidden></div>
       </div>
     </div>
-  </div>
+  </header>
 
-  <script src="assets/js/portal.js"></script>
+  <main>
+    <div class="field" id="field">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="wrap hero-grid">
+          <div class="hero-copy">
+            <p class="kicker"><span>01</span> Classwork</p>
+            <h1 id="hero-title" class="display">Works<br>along one<br>scroll</h1>
+            <p class="lede">The works that can be browsed publicly sit on one path. Scroll to see them together. Open a work for its groups or affiliated entries.</p>
+            <div class="actions">
+              <a class="btn btn-solid" href="#works">Browse works</a>
+              <a class="btn btn-ghost" data-work="class" href="work.html?w=class">Class group videos</a>
+            </div>
+            <p class="hint"><span aria-hidden="true"></span>Scroll — works together</p>
+          </div>
+          <figure class="plate-art">
+            <img src="assets/img/studio-mark.svg" alt="" />
+            <figcaption>
+              <span>Classwork</span>
+              <span>Two works</span>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="showcase" id="works" aria-labelledby="works-title">
+        <div class="wrap">
+          <div class="showcase-head">
+            <p class="kicker"><span>02</span> Together</p>
+            <h2 id="works-title" class="display">Two works</h2>
+          </div>
+          <div class="plates">
+            <a class="plate" data-work="class" href="work.html?w=class">
+              <span class="plate-no">01</span>
+              <h3>Class group videos</h3>
+              <p class="plate-en">班作品视频</p>
+              <p class="plate-note">Ten groups. The Taste sample can play. Groups 2 through 10 are waiting.</p>
+              <span class="plate-go">Enter this work</span>
+            </a>
+            <a class="plate" data-work="psych" href="work.html?w=psych">
+              <span class="plate-no">02</span>
+              <h3>Applied Psychology</h3>
+              <p class="plate-en">应用心理学</p>
+              <div class="nest">
+                <p class="nest-kicker">Affiliated · Assignment Two</p>
+                <p class="nest-name">文明航程个人作业</p>
+                <p class="nest-note">AI-assisted writing. In progress, with no public film.</p>
+              </div>
+              <span class="plate-go">Enter this work</span>
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="sheet" id="sheet">
+      <header class="sheet-intro wrap">
+        <p class="kicker ink"><span>03</span> Interior</p>
+        <h2 class="display">After you enter</h2>
+        <p>Each work interior uses the same browser: a reel, the entries, All / Playable / Pending, and the four themes — Paper, Geometry, Stage, Editorial.</p>
+      </header>
+
+      <section class="chapter" id="chapter-class" aria-labelledby="class-title">
+        <div class="wrap">
+          <p class="kicker ink"><span>01</span> Groups</p>
+          <div class="chapter-top">
+            <h2 id="class-title" class="display">Class group videos</h2>
+            <p class="chapter-en">班作品视频</p>
+          </div>
+          <div class="chapter-grid">
+            <div class="chapter-copy">
+              <p>The ten group slots stay here. Slot 1 is the portal’s own Taste sample, so playback can be tried. Slots 2 through 10 are empty and waiting. Website links stay as a note in this phase.</p>
+              <p class="stats"><span>1 playable</span><span>9 pending</span></p>
+              <a class="text-go" data-work="class" href="work.html?w=class">Open the ten groups</a>
+            </div>
+            <ol class="strip" aria-label="Ten groups">
+              <li class="is-on"><span>01</span><small>Sample</small></li>
+              <li><span>02</span><small>Empty</small></li>
+              <li><span>03</span><small>Empty</small></li>
+              <li><span>04</span><small>Empty</small></li>
+              <li><span>05</span><small>Empty</small></li>
+              <li><span>06</span><small>Empty</small></li>
+              <li><span>07</span><small>Empty</small></li>
+              <li><span>08</span><small>Empty</small></li>
+              <li><span>09</span><small>Empty</small></li>
+              <li><span>10</span><small>Empty</small></li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter" id="chapter-psych" aria-labelledby="psych-title">
+        <div class="wrap">
+          <p class="kicker ink"><span>02</span> Affiliated</p>
+          <div class="chapter-top">
+            <h2 id="psych-title" class="display">Applied Psychology</h2>
+            <p class="chapter-en">应用心理学</p>
+          </div>
+          <div class="chapter-grid">
+            <div class="chapter-copy">
+              <p>This is a top-level work. Assignment Two does not get its own homepage card. It is affiliated here: 文明航程个人作业, AI-assisted writing. There is no public film, and the interior shows it as in progress.</p>
+              <p class="stats"><span>1 affiliated</span><span>In progress</span></p>
+              <a class="text-go" data-work="psych" href="work.html?w=psych">Enter Applied Psychology</a>
+            </div>
+            <aside class="slip">
+              <p class="slip-kicker">Affiliated · not its own homepage card</p>
+              <h3>Assignment Two</h3>
+              <p class="slip-name">文明航程个人作业</p>
+              <p class="slip-kind">AI-assisted writing</p>
+              <p class="slip-status">In progress · no public film</p>
+              <a class="text-go" data-work="psych" href="work.html?w=psych">Open inside Applied Psychology</a>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="ledger" id="ledger" aria-labelledby="ledger-title">
+        <div class="wrap">
+          <p class="kicker ink"><span>04</span> Index</p>
+          <h2 id="ledger-title" class="display">Index</h2>
+          <dl>
+            <div class="row">
+              <dt>Language</dt>
+              <dd>Chinese and English each have a page. The work and the theme come along when you switch.</dd>
+            </div>
+            <div class="row">
+              <dt>Video</dt>
+              <dd>This phase shows video only. Website entries are not open yet.</dd>
+            </div>
+            <div class="row">
+              <dt>Sample</dt>
+              <dd>The short film in class group 1 is a portal-made placeholder for trying playback, not a student film.</dd>
+            </div>
+            <div class="row">
+              <dt>Assignment Two</dt>
+              <dd>Affiliated under Applied Psychology. No film, and no assignment documents are posted here.</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <footer class="site-foot">
+        <div class="wrap">
+          <p>Classwork portal · the public site stays unchanged until the owner approves</p>
+        </div>
+      </footer>
+    </div>
+  </main>
+
+  <script src="assets/js/home.js"></script>
 </body>
 </html>

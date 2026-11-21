@@ -1,218 +1,187 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-lang="zh">
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>班作品视频门户（中文）</title>
+  <meta name="theme-color" content="#0e3436" />
+  <meta name="description" content="课作门户。班作品视频与应用心理学并置；作业二挂靠在应用心理学下。" />
+  <title>课作门户</title>
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
-  <script>
-    (function () {
-      var q = new URLSearchParams(location.search);
-      var themes = { paper: 1, geometry: 1, stage: 1, editorial: 1 };
-      var v = (q.get("v") || "").toLowerCase();
-      if (!themes[v]) v = "paper";
-      document.documentElement.setAttribute("data-theme", v);
-      var c = (q.get("c") || "").toLowerCase();
-      if (c !== "light" && c !== "dark") c = v === "editorial" ? "dark" : "";
-      if (c) document.documentElement.setAttribute("data-contrast", c);
-    })();
-  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Serif+SC:wght@600;700&family=Oswald:wght@500;600&family=Outfit:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" />
-  <link rel="stylesheet" href="assets/css/portal.css" />
-  <link rel="stylesheet" href="assets/css/theme-paper.css" />
-  <link rel="stylesheet" href="assets/css/theme-geometry.css" />
-  <link rel="stylesheet" href="assets/css/theme-stage.css" />
-  <link rel="stylesheet" href="assets/css/theme-editorial.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="assets/css/home.css" />
 </head>
 <body>
+  <a class="skip" href="#works">跳到作品</a>
   <div class="grain" aria-hidden="true"></div>
 
-  <div id="app-shell">
-    <header id="site-bar" class="site-bar">
-      <svg id="line-field" class="line-field" viewBox="0 0 1200 72" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M0 26 C 160 6, 300 58, 520 28 S 860 6, 1200 32" />
-        <path d="M0 46 C 150 68, 390 20, 640 48 S 980 72, 1200 42" />
-        <path d="M0 16 C 220 34, 470 2, 760 22 S 1020 46, 1200 18" />
-      </svg>
-      <div class="wrap site-bar-inner">
-        <div class="brand-block">
-          <p id="site-brand"><span id="course-title">课程标题加载中…</span></p>
-          <p id="meta-line">学期 教师</p>
+  <header class="bar" id="bar">
+    <div class="bar-progress" id="bar-progress" aria-hidden="true"></div>
+    <div class="wrap bar-inner">
+      <nav class="bar-nav" aria-label="页内">
+        <a href="#works">作品</a>
+        <a href="#ledger">索引</a>
+      </nav>
+      <a class="mark" href="index-cn.html">课作</a>
+      <div class="bar-end">
+        <p class="carry" id="theme-carry" hidden></p>
+        <div class="lang" aria-label="语言">
+          <span class="current">中</span>
+          <a href="index.html" data-lang-target="en">EN</a>
         </div>
-        <nav id="version-switch" class="version-switch" aria-label="版本 Version">
-          <a href="?v=paper" data-v="paper"><span class="v-zh">纸面</span><span class="v-en">Paper</span></a>
-          <a href="?v=geometry" data-v="geometry"><span class="v-zh">几何</span><span class="v-en">Geometry</span></a>
-          <a href="?v=stage" data-v="stage"><span class="v-zh">舞台</span><span class="v-en">Stage</span></a>
-          <a href="?v=editorial" data-v="editorial"><span class="v-zh">编辑</span><span class="v-en">Editorial</span></a>
-        </nav>
-        <div class="bar-tools">
-          <div id="index-filter" class="index-filter" role="group" aria-label="筛选">
-            <button type="button" data-filter="all" aria-pressed="true">全部</button>
-            <button type="button" data-filter="playable" aria-pressed="false">可播放</button>
-            <button type="button" data-filter="pending" aria-pressed="false">待提交</button>
-          </div>
-          <div id="contrast-switch" class="contrast-switch" role="group" aria-label="对比">
-            <button type="button" data-c="light" aria-pressed="false">纸</button>
-            <button type="button" data-c="dark" aria-pressed="true">墨</button>
-          </div>
-          <a class="bar-cta" id="bar-cta" href="#showreel">查看作品</a>
-          <div class="lang-switch" aria-label="语言">
-            <span class="current">中</span>
-            <a href="index.html" data-lang-target="en">EN</a>
-          </div>
-        </div>
-      </div>
-      <div id="scroll-progress" aria-hidden="true"></div>
-    </header>
-
-    <main id="workspace">
-      <section id="hero" aria-labelledby="page-title">
-        <div class="wrap hero-layout">
-          <div class="hero-copy">
-            <p class="stage-kicker" id="stage-kicker"><span class="kicker-num">#01</span> <span id="kicker-label">CLASSWORK</span></p>
-            <p id="hero-eyebrow" class="reveal-item">课程作品门户</p>
-            <div class="title-block">
-              <h1 id="page-title" class="reveal-item">作品</h1>
-              <p class="title-echo" id="title-echo" aria-hidden="true">作品</p>
-            </div>
-            <p id="work-summary" class="reveal-item"></p>
-            <div class="note-block" id="note-block">
-              <button type="button" id="note-toggle" class="note-toggle" aria-expanded="false" aria-controls="note-text">
-                <span class="note-kicker">#04</span>
-                <span id="note-toggle-label">说明</span>
-              </button>
-              <p id="note-text" class="note-text">本门户本阶段展示各组视频作品；网页入口后续开放。</p>
-            </div>
-            <div class="hero-actions">
-              <a class="hero-cta" id="hero-cta" href="#showreel">查看作品</a>
-              <p id="scroll-hint" class="reveal-item" aria-hidden="true">
-                <span class="hint-line" aria-hidden="true"></span>
-                <span id="scroll-hint-text">向下滚动，逐组浏览</span>
-              </p>
-            </div>
-          </div>
-          <div class="hero-aside">
-            <div class="paper-tiles" id="paper-tiles">
-              <button type="button" class="paper-tile tile-a" data-filter="playable">
-                <span class="tile-no">01</span>
-                <span class="tile-zh">可播放</span>
-                <span class="tile-en">Playable</span>
-                <span class="tile-arrow" aria-hidden="true">→</span>
-              </button>
-              <button type="button" class="paper-tile tile-b" data-filter="pending">
-                <span class="tile-no">02</span>
-                <span class="tile-zh">待提交</span>
-                <span class="tile-en">Pending</span>
-                <span class="tile-arrow" aria-hidden="true">→</span>
-              </button>
-              <button type="button" class="paper-tile tile-c" data-go="showreel">
-                <span class="tile-no">03</span>
-                <span class="tile-zh">试映</span>
-                <span class="tile-en">Sample</span>
-                <span class="tile-arrow" aria-hidden="true">→</span>
-              </button>
-              <button type="button" class="paper-tile tile-d" data-filter="all" data-go="works">
-                <span class="tile-no">04</span>
-                <span class="tile-zh">组别</span>
-                <span class="tile-en">Groups</span>
-                <span class="tile-arrow" aria-hidden="true">→</span>
-              </button>
-            </div>
-            <div class="geo-assembly" aria-hidden="true">
-              <span class="geo geo-pill-v"></span>
-              <span class="geo geo-ring"></span>
-              <span class="geo geo-circle"></span>
-              <span class="geo geo-pill-h"></span>
-              <span class="geo geo-dot"></span>
-              <span class="geo geo-slab"></span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div id="paper-reel" class="paper-reel" role="region" aria-labelledby="reel-label">
-        <div class="wrap">
-          <div class="reel-head">
-            <p id="reel-label">试映条</p>
-            <div class="reel-progress" aria-hidden="true"><span id="reel-bar"></span></div>
-          </div>
-          <div id="reel-track" class="reel-track"></div>
-        </div>
-      </div>
-
-      <section id="showreel" class="showreel wrap" aria-labelledby="showreel-title">
-        <div class="showreel-stage">
-          <button type="button" class="cover-frame" id="showreel-play" hidden>
-            <span class="cover-media"><img id="showreel-img" alt="" /></span>
-            <span class="cover-playhint" id="showreel-hint" aria-hidden="true"></span>
-          </button>
-          <div class="cover-pending showreel-empty" id="showreel-empty" hidden>
-            <span class="pending-slot" id="showreel-empty-slot"></span>
-            <span class="pending-label" id="showreel-empty-label"></span>
-          </div>
-        </div>
-        <div class="showreel-copy">
-          <p class="showreel-kicker" id="showreel-kicker">#01</p>
-          <h2 id="showreel-title">试映</h2>
-          <p class="showreel-sub" id="showreel-sub"></p>
-          <p class="showreel-status" id="showreel-status"></p>
-          <div class="showreel-actions">
-            <button type="button" class="section-play" id="showreel-cta" hidden>播放</button>
-            <div class="pager" role="group" aria-label="上一组与下一组">
-              <button type="button" id="showreel-prev">上一组</button>
-              <button type="button" id="showreel-next">下一组</button>
-            </div>
-          </div>
-          <p class="website-reserve" id="showreel-reserve">网页入口，后续开放</p>
-        </div>
-      </section>
-
-      <div id="works-band" class="works-band">
-        <div class="wrap band-head">
-          <p class="band-kicker"><span class="kicker-num">#02</span> <span id="band-label">组别</span></p>
-        </div>
-        <div id="works-track"></div>
-      </div>
-    </main>
-
-    <nav id="works-rail" aria-label="作品导航"></nav>
-
-    <p id="section-counter" aria-hidden="true"><span id="counter-current">01</span><span class="counter-sep">/</span><span id="counter-total">10</span></p>
-
-    <footer class="site-footer">
-      <div class="wrap">
-        <p class="footer-line">CW-PORTAL-VIDEO-20261109-01 — 本阶段只挂视频 — 公开 Pages / 发群须用户批</p>
-        <p class="footer-mark" aria-hidden="true">CLASSWORK</p>
-      </div>
-    </footer>
-  </div>
-
-  <div id="player-modal" class="modal" hidden>
-    <div id="player-backdrop" class="modal-backdrop" aria-hidden="true"></div>
-    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="player-title">
-      <div class="modal-head">
-        <div class="modal-titles">
-          <p class="modal-kicker" id="player-kicker">#01</p>
-          <h3 id="player-title">视频</h3>
-          <p class="modal-sub" id="player-sub"></p>
-        </div>
-        <div class="modal-tools">
-          <div class="pager pager-modal" role="group" aria-label="上一组与下一组">
-            <button type="button" id="player-prev">上一组</button>
-            <button type="button" id="player-next">下一组</button>
-          </div>
-          <button type="button" id="player-close" class="modal-close" aria-label="关闭">×</button>
-        </div>
-      </div>
-      <div class="modal-body">
-        <video id="player-video" controls playsinline preload="metadata" hidden></video>
-        <div id="player-fail" class="fail-box" hidden></div>
       </div>
     </div>
-  </div>
+  </header>
 
-  <script src="assets/js/portal.js"></script>
+  <main>
+    <div class="field" id="field">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="wrap hero-grid">
+          <div class="hero-copy">
+            <p class="kicker"><span>01</span> 课作门户</p>
+            <h1 id="hero-title" class="display">作品<br>沿一条<br>长卷</h1>
+            <p class="lede">可以公开浏览的作品放在同一条路径上。向下看见它们并置；点进一件，才是组别或挂靠条目。</p>
+            <div class="actions">
+              <a class="btn btn-solid" href="#works">浏览作品</a>
+              <a class="btn btn-ghost" data-work="class" href="work-cn.html?w=class">班作品视频</a>
+            </div>
+            <p class="hint"><span aria-hidden="true"></span>向下，作品并置</p>
+          </div>
+          <figure class="plate-art">
+            <img src="assets/img/studio-mark.svg" alt="" />
+            <figcaption>
+              <span>课作</span>
+              <span>两件作品</span>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="showcase" id="works" aria-labelledby="works-title">
+        <div class="wrap">
+          <div class="showcase-head">
+            <p class="kicker"><span>02</span> 并置</p>
+            <h2 id="works-title" class="display">两件作品</h2>
+          </div>
+          <div class="plates">
+            <a class="plate" data-work="class" href="work-cn.html?w=class">
+              <span class="plate-no">01</span>
+              <h3>班作品视频</h3>
+              <p class="plate-en">Class group videos</p>
+              <p class="plate-note">十个组别。Taste 试料可播放，第 2 组至第 10 组待提交。</p>
+              <span class="plate-go">进入这件作品</span>
+            </a>
+            <a class="plate" data-work="psych" href="work-cn.html?w=psych">
+              <span class="plate-no">02</span>
+              <h3>应用心理学</h3>
+              <p class="plate-en">Applied Psychology</p>
+              <div class="nest">
+                <p class="nest-kicker">挂靠 · 作业二</p>
+                <p class="nest-name">文明航程个人作业</p>
+                <p class="nest-note">AI 辅助写作。进行中，尚无公开成片。</p>
+              </div>
+              <span class="plate-go">进入这件作品</span>
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="sheet" id="sheet">
+      <header class="sheet-intro wrap">
+        <p class="kicker ink"><span>03</span> 内页</p>
+        <h2 class="display">进入之后</h2>
+        <p>每件作品的内页用同一套浏览：试映、条目、全部 / 可播放 / 待提交，以及纸面、几何、舞台、编辑。</p>
+      </header>
+
+      <section class="chapter" id="chapter-class" aria-labelledby="class-title">
+        <div class="wrap">
+          <p class="kicker ink"><span>01</span> 组别</p>
+          <div class="chapter-top">
+            <h2 id="class-title" class="display">班作品视频</h2>
+            <p class="chapter-en">Class group videos</p>
+          </div>
+          <div class="chapter-grid">
+            <div class="chapter-copy">
+              <p>十个组别槽位仍在这里。第 1 组是门户自备的 Taste 试料，用来试通播放；第 2 组到第 10 组是空位。网页链接这一阶段只保留说明。</p>
+              <p class="stats"><span>1 可播放</span><span>9 待提交</span></p>
+              <a class="text-go" data-work="class" href="work-cn.html?w=class">查看十个组别</a>
+            </div>
+            <ol class="strip" aria-label="十个组别">
+              <li class="is-on"><span>01</span><small>试料</small></li>
+              <li><span>02</span><small>空</small></li>
+              <li><span>03</span><small>空</small></li>
+              <li><span>04</span><small>空</small></li>
+              <li><span>05</span><small>空</small></li>
+              <li><span>06</span><small>空</small></li>
+              <li><span>07</span><small>空</small></li>
+              <li><span>08</span><small>空</small></li>
+              <li><span>09</span><small>空</small></li>
+              <li><span>10</span><small>空</small></li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter" id="chapter-psych" aria-labelledby="psych-title">
+        <div class="wrap">
+          <p class="kicker ink"><span>02</span> 挂靠</p>
+          <div class="chapter-top">
+            <h2 id="psych-title" class="display">应用心理学</h2>
+            <p class="chapter-en">Applied Psychology</p>
+          </div>
+          <div class="chapter-grid">
+            <div class="chapter-copy">
+              <p>这是一件顶层作品。作业二不单独占首页上的卡片，而是挂靠在这里：文明航程个人作业，AI 辅助写作。没有公开成片，内页按进行中展示。</p>
+              <p class="stats"><span>1 挂靠</span><span>进行中</span></p>
+              <a class="text-go" data-work="psych" href="work-cn.html?w=psych">进入应用心理学</a>
+            </div>
+            <aside class="slip">
+              <p class="slip-kicker">挂靠 · 不是另一张首页卡片</p>
+              <h3>作业二</h3>
+              <p class="slip-name">文明航程个人作业</p>
+              <p class="slip-kind">AI 辅助写作</p>
+              <p class="slip-status">进行中 · 尚无公开成片</p>
+              <a class="text-go" data-work="psych" href="work-cn.html?w=psych">在应用心理学内页查看</a>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="ledger" id="ledger" aria-labelledby="ledger-title">
+        <div class="wrap">
+          <p class="kicker ink"><span>04</span> 索引</p>
+          <h2 id="ledger-title" class="display">索引</h2>
+          <dl>
+            <div class="row">
+              <dt>语言</dt>
+              <dd>中文与 English 各有一页。切换时，作品和主题会跟着走。</dd>
+            </div>
+            <div class="row">
+              <dt>视频</dt>
+              <dd>本阶段只展示视频。网页入口尚未开放。</dd>
+            </div>
+            <div class="row">
+              <dt>试料</dt>
+              <dd>班作品第 1 组的短片是门户自备占位，用来试通播放，不是学生成片。</dd>
+            </div>
+            <div class="row">
+              <dt>作业二</dt>
+              <dd>挂靠在应用心理学下。没有成片，这里也不放置作业文档。</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <footer class="site-foot">
+        <div class="wrap">
+          <p>课作门户 · 公开站点更新需所有者确认</p>
+        </div>
+      </footer>
+    </div>
+  </main>
+
+  <script src="assets/js/home.js"></script>
 </body>
 </html>
