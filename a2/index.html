@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rewritten Minds at Work — Inspection bench (2D)</title>
+  <style>
+:root{--paper:#f4efe4;--ink:#1c1814;--muted:#5c564c;--line:#cfc6b6;--card:#fffaf1;--accent:#8c2f1b;--chip:#eee4d2;--ok:#1f4d3a;--partial:#7a4a12;--warn:#6b1d1d;--focus:#1d3a5f}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--paper);color:var(--ink)}
+body{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Songti SC","Noto Serif SC",Georgia,serif;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding:1.25rem 1.1rem 4rem}
+header.hero{border-bottom:1px solid var(--line);padding-bottom:1.1rem;margin-bottom:1rem}
+.kicker{display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-items:baseline;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.badge{border:1px solid var(--accent);color:var(--accent);padding:.1rem .45rem;letter-spacing:.08em;font-size:.68rem;text-transform:uppercase}
+h1{font-size:1.85rem;font-weight:650;margin:.35rem 0 .15rem;letter-spacing:-.02em}
+.zh-title{color:var(--muted);margin:0 0 .55rem;font-size:1.02rem}
+.thesis{background:var(--card);border:1px solid var(--line);padding:1rem 1.1rem}
+.thesis p{margin:0 0 .6rem}
+.thesis .zh{color:var(--muted);font-size:.95rem;margin:0}
+.contest{margin-top:.8rem!important;font-size:.88rem;color:var(--muted)}
+nav.tabs{display:flex;flex-wrap:wrap;gap:.4rem;margin:1rem 0}
+nav.tabs button{font:inherit;background:transparent;border:1px solid var(--line);padding:.4rem .7rem;cursor:pointer;color:var(--ink)}
+nav.tabs button[aria-selected="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.meta{display:grid;gap:.35rem 1.2rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin:0 0 1rem;font-size:.92rem}
+.meta dt{color:var(--muted);font-size:.75rem;letter-spacing:.04em;text-transform:uppercase;margin:0}
+.meta dd{margin:0 0 .5rem}
+.cols{display:grid;gap:.7rem;grid-template-columns:1fr}
+@media(min-width:800px){.cols{grid-template-columns:1fr 1fr}}
+@media(min-width:1100px){.cols{grid-template-columns:1fr 1fr 1fr 1fr}}
+.col{background:var(--card);border:1px solid var(--line);padding:.8rem .85rem;min-width:0}
+.col h3{margin:0 0 .45rem;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.col .en{margin:0 0 .5rem;font-size:.92rem}
+.col .zh{margin:0;color:var(--muted);font-size:.86rem}
+.chips{display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.65rem}
+.chip{background:var(--chip);font-size:.72rem;padding:.05rem .35rem;letter-spacing:.03em}
+.callout{border-left:3px solid var(--warn);padding:.55rem .8rem;margin:1rem 0;background:#f8ece8;font-size:.9rem}
+.objects,.verdict,.corridor,.overall{background:var(--card);border:1px solid var(--line);padding:.9rem 1rem;margin:1rem 0 0}
+.objects h2,.verdict h2,.corridor h2,.overall h2{font-size:1.05rem;margin:0 0 .7rem}
+.obj{border-top:1px solid var(--line);padding:.65rem 0}
+.section-block .obj:first-of-type{border-top:0}
+.obj .id{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.75rem;color:var(--muted)}
+.tag-atm{color:var(--warn);font-size:.75rem;font-weight:650}
+.tag-ex{color:var(--ok);font-size:.75rem;font-weight:650}
+.cond{border-top:1px solid var(--line);padding:.75rem 0}
+.cond:first-of-type{border-top:0}
+.preset{font-size:.88rem}
+.preset .zh{color:var(--muted)}
+.choices{display:flex;flex-wrap:wrap;gap:.6rem 1rem;margin:.45rem 0 .5rem;font-size:.88rem}
+.qualifier{font-size:.8rem;color:var(--muted)}
+.conclusion{margin-top:.8rem;padding-top:.8rem;border-top:1px solid var(--line)}
+.changed{color:var(--partial);font-size:.82rem}
+textarea{width:100%;min-height:4.5rem;font:inherit;padding:.45rem;border:1px solid var(--line);background:#fff;color:var(--ink)}
+.row-actions{margin-top:.5rem}
+.ghost{font:inherit;background:transparent;color:var(--ink);border:1px solid var(--line);padding:.35rem .7rem;cursor:pointer}
+.skip{font-size:.85rem;color:var(--muted);margin:0 0 .7rem}
+.pair{display:grid;gap:.7rem;grid-template-columns:1fr}
+@media(min-width:800px){.pair{grid-template-columns:1fr auto 1fr;align-items:stretch}}
+.arrow{align-self:center;text-align:center;color:var(--accent);font-size:1.2rem}
+footer{margin-top:1.4rem;color:var(--muted);font-size:.8rem}
+code{font-family:ui-monospace,Menlo,Consolas,monospace}
+
+.mode-switch{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin:.7rem 0 0}
+.mode-switch .on,.mode-switch .off{font:inherit;font-size:.8rem;padding:.28rem .55rem;border:1px solid var(--line);background:transparent;color:var(--ink)}
+.mode-switch .on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.mode-switch .off{opacity:.7;cursor:not-allowed}
+.notice{font-size:.82rem;color:var(--muted);margin:.4rem 0 0}
+.status-notice{border:1px solid var(--accent);background:#f8ece8;color:var(--ink);padding:.7rem .9rem;margin:0 0 1rem;font-size:.95rem}
+.status-notice strong{font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-right:.35rem}
+.demo{margin:1rem 0 0;border:1px dashed var(--line);padding:.7rem .85rem;background:#f7f3ea}
+.demo h2{margin:0 0 .35rem;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.demo ol{margin:.3rem 0 0;padding-left:1.15rem;font-size:.86rem}
+.demo a{color:var(--accent)}
+.dir{display:grid;gap:.7rem;grid-template-columns:1fr;margin-top:.8rem}
+@media(min-width:800px){.dir{grid-template-columns:1fr 1fr}}
+.dir a.card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);padding:.8rem .9rem}
+.dir a.card:hover{border-color:var(--accent)}
+.dir a.card strong{display:block;margin-bottom:.25rem}
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="status-notice" role="status">
+      <strong>Status.</strong>
+      Version CV-A2-12-COPY-2D-20261117.
+      This is a 2D work-in-progress preview.
+      3D/WebGL and the required presentation recording are not yet delivered.
+      This is not the final assignment.
+      Review is in progress.
+    </p>
+    <header class="hero">
+      <div class="kicker">
+        <span class="badge">2D fallback · Inspection desk first</span>
+        <span id="major"></span>
+        <span id="version"></span>
+      </div>
+      <h1 id="title-en"></h1>
+      <p class="zh-title" id="title-zh"></p>
+      <div class="thesis">
+        <p id="thesis-en"></p>
+        <p class="zh" id="thesis-zh"></p>
+        <p class="contest" id="contest"></p>
+      </div>
+      <div class="mode-switch" role="group" aria-label="Display mode">
+        <button type="button" class="on" aria-pressed="true">2D · Inspection desk first</button>
+        <button type="button" class="off" disabled title="3D scenes and WebGL are waiting for later modeling and engineering. They are not part of this page.">3D scenes (pending)</button>
+      </div>
+      <p class="notice">This page is the P0 fallback: the thesis, three cases, four-column bench, and three-condition judgments work without WebGL. 3D circulation stays empty until outsourced assets arrive.</p>
+      <details class="demo">
+        <summary>60-second demo path (for a later recording; no video is embedded yet)</summary>
+        <h2>Suggested camera-free walkthrough</h2>
+        <ol>
+          <li><a href="#foyer">0–8s · Foyer</a> — title and full thesis</li>
+          <li><a href="#case1">8–22s · Case 1</a> — four columns and the Japan judgment</li>
+          <li><a href="#corridors">22–28s · Corridor A</a> — skippable rewrite (book → Japanese translation)</li>
+          <li><a href="#case2">28–40s · Case 2</a> — limited mutual learning; no gaokao continuation</li>
+          <li><a href="#case3">40–52s · Case 3</a> — MBSR → SIY; one-way flow and commodification</li>
+          <li><a href="#overall">52–60s · Overall judgment</a> — mutual learning is not automatic</li>
+        </ol>
+      </details>
+    </header>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button type="button" role="tab" aria-selected="true" data-view="foyer">Foyer / Opening</button>
+      <button type="button" role="tab" aria-selected="false" data-view="case1">Case 1 · Japan</button>
+      <button type="button" role="tab" aria-selected="false" data-view="case2">Case 2 · Republican China</button>
+      <button type="button" role="tab" aria-selected="false" data-view="case3">Case 3 · Workplace mindfulness</button>
+      <button type="button" role="tab" aria-selected="false" data-view="corridors">Rewriting corridors (skippable)</button>
+    </nav>
+    <main id="app"></main>
+    <section class="overall" id="overall" aria-label="Overall judgment">
+      <h2>Overall judgment / 总判断</h2>
+      <p id="overall-en"></p>
+      <p class="zh-title" id="overall-zh"></p>
+    </section>
+    <footer>
+      <p>Locked copy from <span id="foot-ver"></span>, based on <span id="foot-r1"></span> and scheme v2. No WebGL required. 3D assets are not part of this mode. Objections stay local in this browser and do not rewrite the evidence table.</p>
+      <p>Open this file directly (<code>file://</code>) or serve the folder. Source copy lives at <code>a2/content/inspection-bench.json</code> (from this page, <code>content/inspection-bench.json</code>).</p>
+    </footer>
+  </div>
+  <script type="application/json" id="bench-data">
+{
+  "version": "CV-A2-12-COPY-2D-20261117",
+  "based_on": "CV-A2-12-R1-20261117",
+  "scheme": "CV-A2-12-scheme-v2",
+  "title_en": "Rewritten Minds at Work",
+  "title_zh": "被改写的劳动心智",
+  "major_dimension": "Psychology × Economic",
+  "thesis_en": "Psychological techniques for measuring ability and training attention changed modern labor markets only after receiving societies rewrote them: Japan and Republican China adapted Western psychotechnics to factories and vocational guidance, and later Western firms turned Buddhist mindfulness into workplace human-capital practice.",
+  "thesis_zh": "心理学改变经济生活的方式，不是发现了一种普世的「经济人心」，而是一套测量能力、管理注意的技术在跨文明移动时被改写：日本与民国中国把西方心理技术改用于工厂选工与职业指导，后来西方公司又把佛教正念改写成职场人力资本训练。",
+  "forbidden_substitute_en": "Psychology is connected to economic life.",
+  "forbidden_substitute_zh": "心理学与经济有关。",
+  "contestable_points_en": "Did these techniques really rewrite labor markets, or did they mostly stay in schools and training rooms? Is the institutional continuity of the Republican testing movement overstated? Is it too broad to count workplace mindfulness as Psychology?",
+  "contestable_points_zh": "心理技术是否真的改写了劳动力市场，还是主要停在学校与培训课？民国测验运动的制度连续性是否被高估？把正念算进 Psychology 专业是否过宽？",
+  "column_labels": {
+    "source": {
+      "en": "Source technique",
+      "zh": "来源技术"
+    },
+    "path": {
+      "en": "Path of movement",
+      "zh": "移动路径"
+    },
+    "rewrite": {
+      "en": "Local rewrite",
+      "zh": "本地改写"
+    },
+    "economic": {
+      "en": "Economic consequence",
+      "zh": "经济后果"
+    }
+  },
+  "condition_labels": {
+    "choice": {
+      "en": "Active choice",
+      "zh": "主动选择"
+    },
+    "adaptation": {
+      "en": "Adaptation",
+      "zh": "适应改造"
+    },
+    "incorporation": {
+      "en": "Lasting incorporation",
+      "zh": "持久融入"
+    }
+  },
+  "option_labels": {
+    "met": {
+      "en": "Met",
+      "zh": "满足"
+    },
+    "partial": {
+      "en": "Partially met",
+      "zh": "部分满足"
+    },
+    "not_met": {
+      "en": "Not met",
+      "zh": "不满足"
+    }
+  },
+  "overall_judgment_en": "All three cases show psychological knowledge or practice entering economic life, but mutual learning is not automatic; each case must be judged by the three conditions. The point of this work is that judgment, not a claim that “all three cases are perfect mutual learning.”",
+  "overall_judgment_zh": "三案都表明心理知识/实践进入经济生活，但互鉴不是自动成立，须逐案用三条件判决；洞察正在于此，而不是「三案都圆满互鉴」。",
+  "objection_note_en": "You may disagree with a preset judgment. Your objection is saved in a separate field and does not change the historical copy or the preset verdict.",
+  "objection_note_zh": "你可以异议预置判决。异议另栏保存，不改史实栏，也不改预置判决正文。",
+  "cases": [
+    {
+      "id": "case1",
+      "n": 1,
+      "period": "IV",
+      "title_en": "Western industrial psychology → Japanese factories and vocational guidance",
+      "title_zh": "西方工业心理学 → 日本工厂与职业指导",
+      "sides_en": "German-speaking world / the United States → Japan",
+      "sides_zh": "德语世界 / 美国 → 日本",
+      "knowledge_en": "Psychotechnics that connected laboratory psychology to selecting workers, conditions of output, and influence in business.",
+      "knowledge_zh": "把实验室心理学接到选人、产出条件与商业影响的心理技术。",
+      "economic_landing_en": "Labor selection, hours and fatigue, production costs, job placement, and personnel practice.",
+      "economic_landing_zh": "劳动选拔、工时与疲劳、生产成本、职业介绍与人事实践。",
+      "columns": {
+        "source": {
+          "en": "Hugo Münsterberg aimed to build a science “intermediate between the modern laboratory psychology and the problems of economics,” asking how to select workers by mental traits, under what mental conditions output increases, and how to influence minds in business. German, 1912: Psychologie und Wirtschaftsleben; English, 1913: Psychology and Industrial Efficiency.",
+          "zh": "闵斯特伯格旨在建立一门介于实验室心理学与经济问题之间的科学，并分别处理：按心理特质选人、在何种心理条件下取得更大产出、以及如何在商业中影响人心。1912 年德文本，1913 年英文本。",
+          "evidence": [
+            "1"
+          ]
+        },
+        "path": {
+          "en": "The technique moved from the German-speaking world / the United States to Japan. In 1915, K. Suzuki’s Japanese translation of Psychology and Industrial Efficiency was published. From 1916, psychotechnical studies of hours and fatigue appeared in post and telegraph offices, then efficiency studies in some large factories. From 1919 a vocational-guidance movement grew; in 1921 Ōhara Magosaburō founded the Institute for Science of Labour at Kurashiki. Industrial psychology “in the proper sense” began in Japan around 1920. Yoichi Ueno (上野阳一) kept introducing Münsterberg’s industrial psychology and took part in bringing in scientific management; in 1925 the Japan Institute of Industrial Efficiency (日本产业能率研究所) was founded.",
+          "zh": "路径：德语世界 / 美国 → 日本。1915 年 K. Suzuki 日译本出版。1916 年起在邮局、电报局做工时与疲劳的心理技术调查，随后在一些大工厂做效率研究。1919 年起职业指导运动；1921 年大原孙三郎在仓敷设劳动科学研究所。工业心理学在日本「本名意义上」约自 1920 年开始。上野阳一持续介绍闵斯特伯格，并参与科学管理的引进；1925 年设立日本产业能率研究所。",
+          "evidence": [
+            "2",
+            "3",
+            "4",
+            "5"
+          ]
+        },
+        "rewrite": {
+          "en": "This was not a page-for-page copy of Münsterberg’s book. Japanese practice combined it with the already arriving Taylor efficiency movement, field studies of fatigue, labour science that ran psychology alongside physiology and hygiene, and vocational tests.",
+          "zh": "不是原书照搬。它与已传入的泰勒效率运动、邮政/工厂现场疲劳研究、劳动科学（心理 + 生理 + 卫生）及职业测验结合。",
+          "evidence": [
+            "3",
+            "4",
+            "5"
+          ]
+        },
+        "economic": {
+          "en": "The economic landing was concrete: tools for labor selection, hours and fatigue, production costs, job placement, and personnel practice—not an abstract “cultural influence.” Do not invent factory names or output figures.",
+          "zh": "落在劳动选拔、工时与疲劳、生产成本、职业介绍与人事部门实践，不是抽象的「文化影响」。不编造工厂名或产量数字。",
+          "evidence": [
+            "3",
+            "4"
+          ]
+        }
+      },
+      "red_lines_en": "Do not treat Japanese QC circles or Deming’s statistical quality control as evidence, or as proof of “incorporation,” for Case 1.",
+      "red_lines_zh": "不得把日本 QC 圈或戴明统计质控写成史案 1 的证据或「融入」。",
+      "verdict": {
+        "label_en": "Constitutes mutual learning.",
+        "label_zh": "构成互鉴。",
+        "conditions": {
+          "choice": {
+            "preset": "met",
+            "en": "Japan actively translated Münsterberg (1915), invited psychologists into workplaces, and founded research institutes.",
+            "zh": "主动翻译闵斯特伯格（1915），企业约请心理学家，并建立研究所。"
+          },
+          "adaptation": {
+            "preset": "met",
+            "en": "The book was combined with the already arriving Taylor efficiency movement, field fatigue research, labour science (psychology + physiology + hygiene), and vocational tests—not copied as-is.",
+            "zh": "与已传入的泰勒效率运动、现场疲劳研究、劳动科学及职业测验结合，不是原书照搬。"
+          },
+          "incorporation": {
+            "preset": "met",
+            "qualifier_en": "Met for Japanese industrial psychology as an institution.",
+            "qualifier_zh": "满足（就日本工业心理学建制而言）",
+            "en": "From the 1920s Japan had industrial psychology in name, vocational-guidance institutions, and a research tradition that continued into mid-century. Postwar QC circles and Deming’s statistical quality control are not evidence of incorporation for this case.",
+            "zh": "1920 年代起有名目上的工业心理学、职业指导机构与沿用至世纪中叶的研究传统。禁止把战后 QC 圈、戴明统计质控算进本案的「融入」证据。"
+          }
+        }
+      },
+      "exhibits": [
+        "OBJ-S1-E01",
+        "OBJ-S1-E02",
+        "OBJ-S1-E03",
+        "OBJ-S1-E04",
+        "OBJ-S1-E05",
+        "OBJ-S1-E06"
+      ],
+      "atmosphere": [
+        "OBJ-S1-A01",
+        "OBJ-S1-A02"
+      ],
+      "corridor": "COR-A"
+    },
+    {
+      "id": "case2",
+      "n": 2,
+      "period": "IV",
+      "title_en": "The Binet–Simon intelligence scale → Republican schools and vocational guidance",
+      "title_zh": "比纳–西蒙智力测验 → 民国学校与职业指导",
+      "sides_en": "France (and the American testing movement) → Republican China",
+      "sides_zh": "法国（及美国测验学）→ 民国中国",
+      "knowledge_en": "Methods for measuring children’s intellectual level, rewritten into Chinese scales and group tests, then connected to vocational guidance.",
+      "knowledge_zh": "测量儿童智力水平的方法，被改写成中文量表、团体测验，并接到职业指导。",
+      "economic_landing_en": "Using psychological measurement to mediate school outlets and industry’s demand for talent.",
+      "economic_landing_zh": "用心理测量沟通学校出路与实业用人。",
+      "columns": {
+        "source": {
+          "en": "In 1905, Alfred Binet and Théodore Simon published new methods for diagnosing intellectual level, the starting point of the later Binet–Simon scale. Cite “Binet and Simon, 1905” only; do not invent test items.",
+          "zh": "比纳与西蒙在 1905 年发表用于诊断智力水平的新方法，是后来比纳–西蒙量表的起点。只写 Binet and Simon, 1905，不编造量表题目。",
+          "evidence": [
+            "6"
+          ]
+        },
+        "path": {
+          "en": "The method moved from France, and through the American testing movement, into Republican China. In 1921 Liao Shicheng (廖世承) and Chen Heqin (陈鹤琴) published 智力测验法 (Methods of Intelligence Testing), among the earliest Chinese works on intelligence testing; Liao also prepared tests that could be given to groups. In 1922 Jia Peijie (贾培杰) translated the Binet–Simon scale into Chinese (described in later accounts as a “method for measuring children’s mental development” or similar) and tried it in some primary schools in Jiangsu and Zhejiang. Around the same time the Chinese National Association for the Improvement of Education (中华教育改进社) invited the American testing specialist McCall to help construct educational tests and train personnel. Lu Zhiwei (陆志韦) returned from the United States in 1920 and helped found China’s first independent psychology department; in 1924 he directed a revision of the Binet–Simon scale and issued 订正比纳西蒙测验说明书; in 1936 he and Wu Tianmin (吴天敏) revised it again, published by the Commercial Press (商务印书馆).",
+          "zh": "法国（及美国测验学）→ 民国中国。1921 年廖世承、陈鹤琴出版《智力测验法》；廖还编制可团体施测的测验。1922 年贾培杰将比纳–西蒙量表译为中文（后文称作「儿童心智发展测量方法」一类名称）并在江浙部分小学试行；同年前后中华教育改进社邀请麦柯尔来华。1920 年陆志韦自美回国，参与创办中国第一个独立心理学系；1924 年主持修订并发表《订正比纳西蒙测验说明书》；1936 年与吴天敏再订，商务印书馆出版。",
+          "evidence": [
+            "7",
+            "8",
+            "9"
+          ]
+        },
+        "rewrite": {
+          "en": "Lu produced a Chinese revision of the Binet scale. Liao developed group testing and connected testing to middle-school vocational guidance. He held that the function of vocational guidance was “to develop the distinctive strengths of the individual and meet the needs of society,” and that schools worried about students’ outlets while industrialists could not find suitable talent because guidance was inadequate. A later review (Ren 2020) says Liao applied intelligence tests to vocational guidance; treat this only as a secondary source, and do not say “first in the country / the world” as an independently verified fact.",
+          "zh": "陆志韦修订中文比纳量表；廖世承发展团体测验，并接到中学职业指导。廖主张指导功能是「发展个性之特长，适合社会的需要」，并指出学校愁学生出路、实业愁得不到相当人才，两边不能调剂是因为指导不得当。任梦 2020 称廖将智力测验用于职业指导，只作二次来源，口播与界面不要把「首先」说成已独立证实的全国或世界第一。",
+          "evidence": [
+            "7",
+            "9",
+            "10",
+            "11"
+          ]
+        },
+        "economic": {
+          "en": "Psychological measurement was used to match interest, ability, and will with occupational conditions (pay, hygiene, advancement) and with society’s demand for talent—an attempt to mediate labor matching between schools and industry. Do not present the later college-entrance examination or contemporary hiring as a straight continuation of the Binet scale.",
+          "zh": "用心理测量配置志趣 / 智力 / 能力与职业及社会用人需求，试图沟通学校与实业界的劳动力匹配。不要把入学考试或后来的高考、当代招聘直接说成比纳量表的延续。",
+          "evidence": [
+            "10"
+          ]
+        }
+      },
+      "red_lines_en": "Do not present the gaokao or contemporary hiring as a straight continuation of the Binet scale. Liao’s quoted wording is in evidence #10 as needing to be read against the 1924 original; the interface may use it, but must point back to #10 and must not claim new first-hand verification of the original issue.",
+      "red_lines_zh": "高考或当代招聘不得写成比纳量表的直线延续。廖世承引语在证据表中标为须与 1924 年原文对读；界面可引用，但须能回到证据 #10，不得写成新的「已亲核原刊」声明。",
+      "verdict": {
+        "label_en": "Limited mutual learning within the Republican education–vocational guidance system.",
+        "label_zh": "在民国教育–职业指导体制内构成有限度的互鉴。",
+        "conditions": {
+          "choice": {
+            "preset": "met",
+            "en": "Returned scholars translated tests, founded a department, organized associations, and invited McCall—an active introduction, not a mere imposition.",
+            "zh": "归国学者翻译、设系、办学会，并邀请麦柯尔来华，属于主动引入。"
+          },
+          "adaptation": {
+            "preset": "met",
+            "en": "Lu revised a Chinese Binet scale; Liao developed group tests, including items suited to Chinese students as the scheme states, and connected testing to middle-school vocational guidance.",
+            "zh": "陆志韦修订中文比纳量表；廖世承发展团体测验，并部分自编适合中国学生的题目；再接到中学职业指导。"
+          },
+          "incorporation": {
+            "preset": "partial",
+            "qualifier_en": "Partially met.",
+            "qualifier_zh": "部分满足",
+            "en": "The 1924 and 1936 revisions and Commercial Press publication show entry into Republican school and guidance practice; war and later institutional breaks are clear. Do not claim a straight, lasting tradition down to contemporary hiring or the gaokao, and do not say this has simply “become a tradition of Chinese civilization itself.”",
+            "zh": "1924 与 1936 两度修订、商务出版，说明它进入了民国学校与指导实践；但战争与后续制度断裂明显，不得主张一条直通当代招聘或高考的「持久传统」，也不得写成无保留的「已成为中华文明自身传统」。"
+          }
+        }
+      },
+      "exhibits": [
+        "OBJ-S2-E01",
+        "OBJ-S2-E02",
+        "OBJ-S2-E03",
+        "OBJ-S2-E04",
+        "OBJ-S2-E05",
+        "OBJ-S2-E06",
+        "OBJ-S2-E07"
+      ],
+      "atmosphere": [
+        "OBJ-S2-A01",
+        "OBJ-S2-A02"
+      ],
+      "corridor": "COR-B",
+      "secondary_note_en": "Evidence #11 (Ren 2020) is a secondary source only. It appears here as a bench note, not as a 1920s room object.",
+      "secondary_note_zh": "证据 #11（任梦 2020）只作二次来源附注，不做成民国室内摆设。"
+    },
+    {
+      "id": "case3",
+      "n": 3,
+      "period": "V",
+      "title_en": "Buddhist mindfulness practice → Western workplace human capital",
+      "title_zh": "佛教正念实践 → 西方职场人力资本",
+      "sides_en": "Buddhist Asia → U.S. medicine / psychology → Western corporate labor processes",
+      "sides_zh": "佛教亚洲 → 美国医学 / 心理学 → 西方公司劳动过程",
+      "knowledge_en": "Mindfulness / sati practice rewritten as secular psychological or behavioral training, then taken into organizational settings.",
+      "knowledge_zh": "正念（mindfulness / sati）修习被改写成世俗心理 / 行为训练，再进入组织情境。",
+      "economic_landing_en": "Attention, emotion regulation, and leadership treated as human capital, entering corporate training and the wellness market.",
+      "economic_landing_zh": "注意力、情绪调节与领导力被当作人力资本，进入企业培训与 wellness 市场。",
+      "columns": {
+        "source": {
+          "en": "The source practice is mindfulness / sati as cultivated in Asian Buddhist traditions. Jon Kabat-Zinn narrates MBSR as mindfulness training in secular institutions: it has a lineage in the Buddhist Dharma, but does not require the religious form of the source tradition as a necessary shell.",
+          "zh": "来源是亚洲佛教传统中的正念（mindfulness / sati）修习。Kabat-Zinn 把 MBSR 叙述为世俗机构中的正念训练，强调它与佛教 Dharma 有渊源，但不以源出地的宗教形态为必须外壳。",
+          "evidence": [
+            "12",
+            "13"
+          ]
+        },
+        "path": {
+          "en": "The path runs from Buddhist Asia to U.S. medicine and psychology, then into the corporate labor process. Kabat-Zinn established MBSR in 1979. In 2007 Chade-Meng Tan (陈一鸣) and colleagues created Search Inside Yourself as an internal Google course combining mindfulness, neuroscience, and leadership / emotional intelligence. In 2012 it became the independent Search Inside Yourself Leadership Institute (SIYLI) and was offered to other organizations. Organizational reviews also describe a movement from Asian monastic traditions into contemporary corporate programs, including occasions such as “Mindful Leadership” at Davos; this work does not rebuild the Davos venue.",
+          "zh": "佛教亚洲 → 美国医学与心理学，再进入公司劳动过程。Kabat-Zinn 于 1979 年创立 MBSR。2007 年谷歌工程师陈一鸣等开设 Search Inside Yourself；2012 年独立为 SIYLI，并向其他组织输出。组织情境综述还提到从亚洲寺院传统进入当代公司项目，以及达沃斯「正念领导力」一类场合——本作品只用说明卡提及，不重建会场。",
+          "evidence": [
+            "12",
+            "13",
+            "14"
+          ]
+        },
+        "rewrite": {
+          "en": "The practice was rewritten first as MBSR, then as a corporate course packaged with neuroscience and emotional intelligence.",
+          "zh": "先改成 MBSR，又改成以神经科学 / 情绪智力包装的企业课程。",
+          "evidence": [
+            "12",
+            "14"
+          ]
+        },
+        "economic": {
+          "en": "Attention, emotion regulation, and leadership in the labor process were treated as human capital. Mindfulness training entered corporate training and the wellness market—as production, labor, and a commodified service—not merely as the spread of a religion. Do not invent enrollment numbers or uncited client lists.",
+          "zh": "劳动过程中的注意力、情绪调节与领导力被当作人力资本；正念训练进入企业培训与 wellness 市场（生产、劳动、服务商品化），而不是只作为宗教信仰传播。不编造学员人数或未经本文给出的采用企业名单。",
+          "evidence": [
+            "13",
+            "14"
+          ]
+        }
+      },
+      "red_lines_en": "Do not invent enrollment numbers. Do not rebuild the Davos venue. Do not describe this “mutual learning” as equal two-way respect.",
+      "red_lines_zh": "不编造学员人数。不重建达沃斯会场。不可把「互鉴」说成对等的双向尊重。",
+      "verdict": {
+        "label_en": "This constitutes mutual learning for the receiving side (Western corporate labor regimes). The flow is largely one-way (Asian practice → Western rewrite, then sold globally). There is controversy about commodifying the practice and stripping its ethical tradition. “Mutual learning” here must not be described as equal two-way respect.",
+        "label_zh": "对接收方（西方公司劳动体制）构成互鉴。须同时说明：流动大体单向（亚洲实践 → 西方改写后再全球售卖）；存在把修习商品化、抽掉伦理传统的争议。不可把「互鉴」说成对等的双向尊重。",
+        "conditions": {
+          "choice": {
+            "preset": "met",
+            "en": "Kabat-Zinn, Tan, and others actively studied the practice and chose a secular path.",
+            "zh": "Kabat-Zinn、陈一鸣等主动学习并选择世俗化路径。"
+          },
+          "adaptation": {
+            "preset": "met",
+            "en": "It was rewritten as MBSR, then as a corporate course packaged with neuroscience and emotional intelligence.",
+            "zh": "改成 MBSR，又改成以神经科学 / 情绪智力包装的企业课程。"
+          },
+          "incorporation": {
+            "preset": "met",
+            "qualifier_en": "Met for Western corporate HR / wellness as an institution.",
+            "qualifier_zh": "满足（就西方公司 HR / wellness 建制而言）",
+            "en": "There are continuing courses, an institute, and adoption across organizations.",
+            "zh": "有持续课程、机构和跨公司采用。"
+          }
+        }
+      },
+      "exhibits": [
+        "OBJ-S3-E01",
+        "OBJ-S3-E02",
+        "OBJ-S3-E03",
+        "OBJ-S3-E04",
+        "OBJ-S3-E05"
+      ],
+      "atmosphere": [
+        "OBJ-S3-A01"
+      ],
+      "corridor": "COR-C"
+    }
+  ],
+  "exhibits": {
+    "OBJ-FOY-01": {
+      "class": "exhibit",
+      "station": "foyer",
+      "en": "Title wall with the full thesis",
+      "zh": "标题墙 / 开屏牌（完整论元）",
+      "visible": "Rewritten Minds at Work; 《被改写的劳动心智》; full locked thesis",
+      "evidence": [],
+      "note_en": "This is the locked thesis (scheme §2), not a historical artifact."
+    },
+    "OBJ-FOY-02": {
+      "class": "atmosphere",
+      "station": "foyer",
+      "en": "Station directory",
+      "zh": "三站方向指示",
+      "visible": "Station 1 Japan 1910–1930 / Station 2 Republican China / Station 3 Workplace mindfulness / Inspection bench",
+      "evidence": [],
+      "note_en": "Navigation only — not a primary source."
+    },
+    "OBJ-S1-E01": {
+      "class": "exhibit",
+      "station": "s1",
+      "en": "Münsterberg 1913 English edition (optional 1912 German spine)",
+      "zh": "闵斯特伯格 1913 年英文本（可并列 1912 年德文本书脊）",
+      "visible": "Psychology and Industrial Efficiency (1913); Psychologie und Wirtschaftsleben (1912); Münsterberg",
+      "evidence": [
+        "1"
+      ]
+    },
+    "OBJ-S1-E02": {
+      "class": "exhibit",
+      "station": "s1",
+      "en": "K. Suzuki 1915 Japanese translation (workbook binding allowed)",
+      "zh": "1915 年 K. Suzuki 日译本（工作手册式装帧即可）",
+      "visible": "K. Suzuki, trans., 1915; Psychology and Industrial Efficiency",
+      "evidence": [
+        "2"
+      ],
+      "note_en": "Do not invent a Japanese title. The evidence table only records “K. Suzuki’s translation.”"
+    },
+    "OBJ-S1-E03": {
+      "class": "exhibit",
+      "station": "s1",
+      "en": "Hours-and-fatigue investigation folder",
+      "zh": "工时 / 疲劳调查文件夹或封面",
+      "visible": "Hours and fatigue; post and telegraph offices; from 1916",
+      "evidence": [
+        "3"
+      ],
+      "note_en": "Blank ruling is allowed; do not fill invented figures, curves, or factory names."
+    },
+    "OBJ-S1-E04": {
+      "class": "exhibit",
+      "station": "s1",
+      "en": "Vocational guidance / job-analysis desk papers (from 1919)",
+      "zh": "职业指导 / 职务分析桌面文件（1919 起）",
+      "visible": "Vocational guidance; job analysis; vocational tests; from 1919",
+      "evidence": [
+        "4"
+      ],
+      "note_en": "No test items or scores."
+    },
+    "OBJ-S1-E05": {
+      "class": "exhibit",
+      "station": "s1",
+      "en": "Kurashiki Institute for Science of Labour nameplate, 1921",
+      "zh": "仓敷劳动科学研究所 1921 年名牌或门牌",
+      "visible": "劳动科学研究所; Kurashiki; 1921; 大原孙三郎 / Ōhara Magosaburō",
+      "evidence": [
+        "4"
+      ],
+      "note_en": "Caption may add: psychological research ran alongside laboratory, field, and physiological-hygiene research."
+    },
+    "OBJ-S1-E06": {
+      "class": "exhibit",
+      "station": "s1",
+      "en": "Japan Institute of Industrial Efficiency nameplate, 1925, with Yoichi Ueno",
+      "zh": "日本产业能率研究所 1925 年名牌，并标明上野阳一",
+      "visible": "日本产业能率研究所; 1925; Yoichi Ueno / 上野阳一",
+      "evidence": [
+        "5"
+      ],
+      "note_en": "Name, year, and person only. No invented motto or unsupported chronology."
+    },
+    "OBJ-S1-A01": {
+      "class": "atmosphere",
+      "station": "s1",
+      "en": "Wooden lab desks, cabinets, clock, window onto unnamed factory outlines",
+      "zh": "木制实验桌、文件柜、挂钟、窗，窗外未具名厂房轮廓",
+      "visible": "",
+      "evidence": [],
+      "note_en": "Atmosphere only — not a primary source. No factory names on the buildings."
+    },
+    "OBJ-S1-A02": {
+      "class": "atmosphere",
+      "station": "s1",
+      "en": "Stopwatch and generic lab instruments",
+      "zh": "秒表、简单测量器具等实验室零物",
+      "visible": "",
+      "evidence": [],
+      "note_en": "Atmosphere only — not a primary source. Do not present these as Münsterberg’s documented personal instruments."
+    },
+    "OBJ-S2-E01": {
+      "class": "exhibit",
+      "station": "s2",
+      "en": "Binet and Simon 1905 article (offprint or journal form)",
+      "zh": "比纳与西蒙 1905 年论文抽印本或期刊形态",
+      "visible": "Binet, A., & Simon, T. (1905); L'Année psychologique; Méthodes nouvelles pour le diagnostic du niveau intellectuel des anormaux",
+      "evidence": [
+        "6"
+      ],
+      "note_en": "Bibliographic information only. Do not invent test items."
+    },
+    "OBJ-S2-E02": {
+      "class": "exhibit",
+      "station": "s2",
+      "en": "Liao and Chen, 1921, Methods of Intelligence Testing",
+      "zh": "廖世承、陈鹤琴 1921 年《智力测验法》",
+      "visible": "智力测验法; 廖世承; 陈鹤琴; 1921",
+      "evidence": [
+        "7"
+      ]
+    },
+    "OBJ-S2-E03": {
+      "class": "exhibit",
+      "station": "s2",
+      "en": "Jia Peijie 1922 Chinese translation / school trial copy",
+      "zh": "贾培杰 1922 年比纳–西蒙中译试行本",
+      "visible": "Jia Peijie / 贾培杰; 1922; Binet–Simon; Jiangsu / Zhejiang primary-school trials",
+      "evidence": [
+        "8"
+      ],
+      "note_en": "Do not invent an official Chinese title. Later accounts describe it as a “method for measuring children’s mental development” or similar."
+    },
+    "OBJ-S2-E04": {
+      "class": "exhibit",
+      "station": "s2",
+      "en": "Caption card or blank invitation form: McCall invited in 1922",
+      "zh": "中华教育改进社邀请麦柯尔来华的说明卡或无正文请柬外形",
+      "visible": "中华教育改进社; McCall; 1922",
+      "evidence": [
+        "8"
+      ],
+      "note_en": "Do not invent letter body text."
+    },
+    "OBJ-S2-E05": {
+      "class": "exhibit",
+      "station": "s2",
+      "en": "Lu Zhiwei, 1924 revision manual",
+      "zh": "陆志韦 1924 年《订正比纳西蒙测验说明书》",
+      "visible": "订正比纳西蒙测验说明书; 陆志韦 / Lu Zhiwei; 1924",
+      "evidence": [
+        "9"
+      ]
+    },
+    "OBJ-S2-E06": {
+      "class": "exhibit",
+      "station": "s2",
+      "en": "1936 Lu and Wu revision, Commercial Press",
+      "zh": "1936 年陆志韦、吴天敏再订本（商务印书馆）",
+      "visible": "陆志韦; 吴天敏 / Wu Tianmin; 1936; 商务印书馆",
+      "evidence": [
+        "9"
+      ]
+    },
+    "OBJ-S2-E07": {
+      "class": "exhibit",
+      "station": "s2",
+      "en": "Liao Shicheng, 1924 article on vocational guidance surveys",
+      "zh": "廖世承 1924 年文《应用职业指导调查表所得来的几个意见》",
+      "visible": "应用职业指导调查表所得来的几个意见; 廖世承; 《教育与人生》第 24 期; pp. 3–4; 1924",
+      "evidence": [
+        "10"
+      ],
+      "note_en": "Do not print the quoted wording on the cover; it belongs on the bench, with the evidence-table caveat that it should be read against the original."
+    },
+    "OBJ-S2-A01": {
+      "class": "atmosphere",
+      "station": "s2",
+      "en": "Republican wooden desks, chairs, shelves, blank chalkboard",
+      "zh": "民国木桌椅、书架、空白黑板",
+      "visible": "",
+      "evidence": [],
+      "note_en": "Atmosphere only — not a primary source."
+    },
+    "OBJ-S2-A02": {
+      "class": "atmosphere",
+      "station": "s2",
+      "en": "Room-function doorplate",
+      "zh": "房间功能门牌",
+      "visible": "职业指导 / Vocational Guidance",
+      "evidence": [],
+      "note_en": "Atmosphere only — not a primary source. Room function, not a historical slogan."
+    },
+    "OBJ-S3-E01": {
+      "class": "exhibit",
+      "station": "s3",
+      "en": "MBSR origin plaque, with Kabat-Zinn 2011 bibliographic card",
+      "zh": "MBSR 起源说明牌，可配 Kabat-Zinn 2011 文书目卡",
+      "visible": "MBSR; 1979; Kabat-Zinn; “Some reflections on the origins of MBSR…” (2011)",
+      "evidence": [
+        "12"
+      ],
+      "note_en": "Copy must stay inside evidence #12. Do not invent a 1979 syllabus."
+    },
+    "OBJ-S3-E02": {
+      "class": "exhibit",
+      "station": "s3",
+      "en": "Review caption card: monastic traditions → corporate programs; Davos “Mindful Leadership” mentioned only",
+      "zh": "组织情境综述说明卡（寺院传统 → 公司项目；提及达沃斯「正念领导力」）",
+      "visible": "Mindfulness in organizations; from monastic traditions in Asia; “Mindful Leadership” (e.g. Davos), as discussed in reviews",
+      "evidence": [
+        "13"
+      ],
+      "note_en": "Do not rebuild the Davos venue."
+    },
+    "OBJ-S3-E03": {
+      "class": "exhibit",
+      "station": "s3",
+      "en": "Search Inside Yourself, 2007, Google internal course cover or plaque",
+      "zh": "2007 年谷歌内部课 Search Inside Yourself 封面或课程牌",
+      "visible": "Search Inside Yourself; 2007; Google (internal); Chade-Meng Tan / 陈一鸣",
+      "evidence": [
+        "14"
+      ],
+      "note_en": "Name, year, internal course, and person only. No enrollment numbers or uncited syllabus detail."
+    },
+    "OBJ-S3-E04": {
+      "class": "exhibit",
+      "station": "s3",
+      "en": "SIYLI 2012 institute sign or external handbook cover",
+      "zh": "2012 年 SIYLI 机构牌或对外课程手册封面",
+      "visible": "Search Inside Yourself Leadership Institute / SIYLI; 2012",
+      "evidence": [
+        "14"
+      ]
+    },
+    "OBJ-S3-E05": {
+      "class": "exhibit",
+      "station": "s3",
+      "en": "One meditation cushion (start of corridor C)",
+      "zh": "坐垫（一座，供走廊 C 转换）",
+      "visible": "",
+      "evidence": [
+        "12",
+        "13"
+      ],
+      "note_en": "Stands for the practice being rewritten, not a replica of a named monastery or ritual object. A small caption may read mindfulness / sati and point to #12 and #13."
+    },
+    "OBJ-S3-A01": {
+      "class": "atmosphere",
+      "station": "s3",
+      "en": "Contemporary training chairs, plants, plain walls, blank screen",
+      "zh": "当代培训椅、绿植、简洁墙面与投影幕（幕上无编造幻灯文案）",
+      "visible": "",
+      "evidence": [],
+      "note_en": "Atmosphere only — not a primary source. Screen stays blank, or shows only the locked course names SIY / SIYLI."
+    }
+  },
+  "corridors": {
+    "COR-A": {
+      "en": "Münsterberg’s book becomes the 1915 Suzuki translation / workbook",
+      "zh": "原书变成日译工作手册",
+      "from": "OBJ-S1-E01",
+      "to": "OBJ-S1-E02",
+      "evidence": [
+        "1",
+        "2"
+      ],
+      "note_en": "Short, skippable. The end point still must not invent a Japanese title."
+    },
+    "COR-B": {
+      "en": "The 1905 Binet–Simon text becomes Lu’s 1924 revision",
+      "zh": "比纳–西蒙 1905 年文本变成陆氏 1924 年修订本",
+      "from": "OBJ-S2-E01",
+      "to": "OBJ-S2-E05",
+      "evidence": [
+        "6",
+        "9"
+      ],
+      "note_en": "Short, skippable. No invented test items in the morph."
+    },
+    "COR-C": {
+      "en": "A cushion becomes a corporate course handbook",
+      "zh": "坐垫变成企业课程手册",
+      "from": "OBJ-S3-E05",
+      "to": "OBJ-S3-E04",
+      "evidence": [
+        "12",
+        "13",
+        "14"
+      ],
+      "note_en": "Short, skippable. Handbook appearance matches OBJ-S3-E04."
+    }
+  },
+  "atmosphere_label_en": "Atmosphere only — not a primary source",
+  "atmosphere_label_zh": "场景气氛，非直接史料"
+}
+
+  </script>
+  <script>
+(function () {
+  const DATA = JSON.parse(document.getElementById("bench-data").textContent);
+  const state = { view: "foyer", verdicts: {}, objections: {} };
+
+  function escapeHtml(s) {
+    return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+  function chips(ids) {
+    return (ids || []).map(function (n) { return '<span class="chip">#' + escapeHtml(n) + "</span>"; }).join("");
+  }
+  function objBlock(id) {
+    const o = DATA.exhibits[id];
+    if (!o) return "";
+    const tag = o.class === "atmosphere"
+      ? '<span class="tag-atm">' + escapeHtml(DATA.atmosphere_label_en) + " / " + escapeHtml(DATA.atmosphere_label_zh) + "</span>"
+      : '<span class="tag-ex">Exhibit / 展品</span>';
+    const vis = o.visible ? '<div class="en">Visible text / 可见文字：' + escapeHtml(o.visible) + "</div>" : "";
+    const note = o.note_en ? '<div class="zh">' + escapeHtml(o.note_en) + "</div>" : "";
+    return '<div class="obj"><div class="id">' + escapeHtml(id) + " · " + tag + " " + chips(o.evidence) + "</div>" +
+      "<div><strong>" + escapeHtml(o.en) + "</strong></div>" +
+      '<div class="zh-title">' + escapeHtml(o.zh || "") + "</div>" + vis + note + "</div>";
+  }
+  function colCard(key, col) {
+    const lab = DATA.column_labels[key];
+    return '<article class="col"><h3>' + escapeHtml(lab.en) + " / " + escapeHtml(lab.zh) + "</h3>" +
+      '<p class="en">' + escapeHtml(col.en) + "</p>" +
+      '<p class="zh">' + escapeHtml(col.zh) + "</p>" +
+      '<div class="chips">' + chips(col.evidence) + "</div></article>";
+  }
+  function getSel(caseId, condKey, preset) {
+    const bag = state.verdicts[caseId] || {};
+    return bag[condKey] || preset;
+  }
+  function corridorSection(corr, heading) {
+    if (!corr) return "";
+    return '<section class="corridor"><h2>' + heading + "</h2>" +
+      "<p>" + escapeHtml(corr.en) + "</p><p class=\"zh-title\">" + escapeHtml(corr.zh) + "</p>" +
+      '<div class="chips">' + chips(corr.evidence) + "</div>" +
+      '<p class="skip">' + escapeHtml(corr.note_en || "") + "</p>" +
+      '<div class="pair">' + objBlock(corr.from) + '<div class="arrow" aria-hidden="true">→</div>' + objBlock(corr.to) + "</div></section>";
+  }
+  function renderCase(cs) {
+    const cols = ["source","path","rewrite","economic"].map(function (k) { return colCard(k, cs.columns[k]); }).join("");
+    const exhibits = '<div class="section-block">' + cs.exhibits.map(objBlock).join("") + "</div>";
+    const atms = '<div class="section-block">' + (cs.atmosphere || []).map(objBlock).join("") + "</div>";
+    const corr = DATA.corridors[cs.corridor];
+    const secondary = cs.secondary_note_en
+      ? '<p class="skip">' + escapeHtml(cs.secondary_note_en) + " " + escapeHtml(cs.secondary_note_zh || "") + "</p>"
+      : "";
+    const conds = ["choice","adaptation","incorporation"].map(function (key) {
+      const c = cs.verdict.conditions[key];
+      const lab = DATA.condition_labels[key];
+      const sel = getSel(cs.id, key, c.preset);
+      const changed = sel !== c.preset
+        ? '<div class="changed">Your selection differs from the preset. The preset wording below is unchanged. / 你的选择与预置不同，预置正文仍保留。</div>'
+        : "";
+      const opts = ["met","partial","not_met"].map(function (opt) {
+        const ol = DATA.option_labels[opt];
+        const checked = sel === opt ? " checked" : "";
+        return '<label><input type="radio" name="' + cs.id + "-" + key + '" value="' + opt + '"' + checked + "> " +
+          escapeHtml(ol.en) + " / " + escapeHtml(ol.zh) + "</label>";
+      }).join("");
+      const q = c.qualifier_en
+        ? '<div class="qualifier">' + escapeHtml(c.qualifier_en) + " / " + escapeHtml(c.qualifier_zh || "") + "</div>"
+        : "";
+      return '<div class="cond"><strong>' + escapeHtml(lab.en) + " / " + escapeHtml(lab.zh) + "</strong>" + q +
+        '<div class="choices">' + opts + "</div>" + changed +
+        '<div class="preset"><div>' + escapeHtml(c.en) + '</div><div class="zh">' + escapeHtml(c.zh) + "</div></div></div>";
+    }).join("");
+    const obj = state.objections[cs.id] || "";
+    return "<article><h2 style=\"margin:.2rem 0 .4rem\">Case " + cs.n + " · Period " + escapeHtml(cs.period) + "</h2>" +
+      "<p><strong>" + escapeHtml(cs.title_en) + "</strong></p>" +
+      '<p class="zh-title">' + escapeHtml(cs.title_zh) + "</p>" +
+      '<dl class="meta"><div><dt>Civilizations / 文明双方</dt><dd>' + escapeHtml(cs.sides_en) +
+      '<br><span class="zh-title">' + escapeHtml(cs.sides_zh) + "</span></dd></div>" +
+      "<div><dt>What moved / 移动的知识</dt><dd>" + escapeHtml(cs.knowledge_en) +
+      '<br><span class="zh-title">' + escapeHtml(cs.knowledge_zh) + "</span></dd></div>" +
+      "<div><dt>Economic landing / 经济落点</dt><dd>" + escapeHtml(cs.economic_landing_en) +
+      '<br><span class="zh-title">' + escapeHtml(cs.economic_landing_zh) + "</span></dd></div></dl>" +
+      '<div class="cols">' + cols + "</div>" +
+      '<div class="callout">' + escapeHtml(cs.red_lines_en) + " " + escapeHtml(cs.red_lines_zh) + "</div>" +
+      '<section class="objects"><h2>Exhibits for this case / 本案展品</h2>' + secondary + exhibits +
+      '<h2 style="margin-top:1rem">Atmosphere / 气氛件</h2>' + atms + "</section>" +
+      corridorSection(corr, "Rewrite corridor (skippable) / 改写走廊（可跳过）") +
+      '<section class="verdict"><h2>Three-condition judgment / 三条件判决</h2>' +
+      '<p class="skip">' + escapeHtml(DATA.objection_note_en) + " " + escapeHtml(DATA.objection_note_zh) + "</p>" +
+      conds +
+      '<div class="conclusion"><strong>Preset conclusion / 预置结论</strong><p>' + escapeHtml(cs.verdict.label_en) +
+      '</p><p class="zh-title">' + escapeHtml(cs.verdict.label_zh) + "</p>" +
+      '<label for="obj-' + cs.id + '"><strong>Your objection / 异议</strong> (optional, does not rewrite history)</label>' +
+      '<textarea id="obj-' + cs.id + '" placeholder="Write a disagreement here. The preset judgment stays visible.">' + escapeHtml(obj) + "</textarea>" +
+      '<div class="row-actions"><button type="button" class="ghost" data-reset="' + cs.id + '">Restore preset selections / 恢复预置选择</button></div>' +
+      "</div></section></article>";
+  }
+
+  function renderFoyer() {
+    const t = DATA.exhibits["OBJ-FOY-01"];
+    const d = DATA.exhibits["OBJ-FOY-02"];
+    return '<article>' +
+      '<h2 style="margin:.2rem 0 .4rem">Foyer / 开屏大厅</h2>' +
+      '<p class="skip">Start here. The inspection bench is available without walking the 3D stations. Jump links below match the later 3D directory.</p>' +
+      (t ? objBlock("OBJ-FOY-01") : "") +
+      (d ? objBlock("OBJ-FOY-02") : "") +
+      '<div class="dir">' +
+      '<a class="card" href="#case1"><strong>Station 1 · Japan, 1910–1930</strong><span class="zh-title">Western industrial psychology rewritten in factories and vocational guidance.</span></a>' +
+      '<a class="card" href="#case2"><strong>Station 2 · Republican China</strong><span class="zh-title">The Binet–Simon scale rewritten for schools and vocational guidance.</span></a>' +
+      '<a class="card" href="#case3"><strong>Station 3 · Workplace mindfulness</strong><span class="zh-title">Buddhist practice rewritten as workplace human-capital training.</span></a>' +
+      '<a class="card" href="#corridors"><strong>Rewrite corridors (skippable)</strong><span class="zh-title">Short before/after comparisons. You can skip them.</span></a>' +
+      '</div></article>';
+  }
+  function renderCorridors() {
+    const blocks = Object.keys(DATA.corridors).map(function (id) {
+      return corridorSection(DATA.corridors[id], escapeHtml(id));
+    }).join("");
+    return '<div><p class="skip">These short transformations are optional. In 3D they can be skipped; here they are static comparisons. / 走廊转换可跳过；2D 模式用静态对照。</p>' + blocks + "</div>";
+  }
+  function bindCase(cs) {
+    ["choice","adaptation","incorporation"].forEach(function (key) {
+      Array.prototype.forEach.call(document.querySelectorAll('input[name="' + cs.id + "-" + key + '"]'), function (inp) {
+        inp.addEventListener("change", function () {
+          state.verdicts[cs.id] = state.verdicts[cs.id] || {};
+          state.verdicts[cs.id][key] = inp.value;
+          render();
+        });
+      });
+    });
+    const ta = document.getElementById("obj-" + cs.id);
+    if (ta) ta.addEventListener("input", function () { state.objections[cs.id] = ta.value; });
+    const rst = document.querySelector('[data-reset="' + cs.id + '"]');
+    if (rst) rst.addEventListener("click", function () { state.verdicts[cs.id] = {}; render(); });
+  }
+  function applyHash() {
+    var h = (location.hash || "#foyer").replace("#","");
+    if (h === "overall") {
+      state.view = "foyer";
+      render();
+      var el = document.getElementById("overall");
+      if (el) el.scrollIntoView({behavior:"smooth", block:"start"});
+      return;
+    }
+    if (h === "foyer" || h === "case1" || h === "case2" || h === "case3" || h === "corridors") {
+      state.view = h;
+    }
+    render();
+  }
+  function render() {
+    const app = document.getElementById("app");
+    Array.prototype.forEach.call(document.querySelectorAll("nav.tabs button"), function (b) {
+      b.setAttribute("aria-selected", b.getAttribute("data-view") === state.view ? "true" : "false");
+    });
+    if (state.view === "foyer") {
+      app.innerHTML = renderFoyer();
+      return;
+    }
+    if (state.view === "corridors") {
+      app.innerHTML = renderCorridors();
+      return;
+    }
+    const cs = DATA.cases.filter(function (c) { return c.id === state.view; })[0];
+    app.innerHTML = renderCase(cs);
+    bindCase(cs);
+  }
+
+  document.getElementById("major").textContent = DATA.major_dimension;
+  document.getElementById("version").textContent = DATA.version;
+  document.getElementById("title-en").textContent = DATA.title_en;
+  document.getElementById("title-zh").textContent = "《" + DATA.title_zh + "》";
+  document.getElementById("thesis-en").textContent = DATA.thesis_en;
+  document.getElementById("thesis-zh").textContent = DATA.thesis_zh;
+  document.getElementById("contest").textContent = "Open to challenge / 可质疑点：" + DATA.contestable_points_en + " " + DATA.contestable_points_zh;
+  document.getElementById("overall-en").textContent = DATA.overall_judgment_en;
+  document.getElementById("overall-zh").textContent = DATA.overall_judgment_zh;
+  document.getElementById("foot-ver").textContent = DATA.version;
+  document.getElementById("foot-r1").textContent = DATA.based_on;
+  Array.prototype.forEach.call(document.querySelectorAll("nav.tabs button"), function (b) {
+    b.addEventListener("click", function () {
+      var v = b.getAttribute("data-view");
+      state.view = v;
+      if (history.replaceState) history.replaceState(null, "", "#" + v);
+      else location.hash = v;
+      render();
+    });
+  });
+  window.addEventListener("hashchange", applyHash);
+  if (location.hash) applyHash();
+  else render();
+})();
+  </script>
+</body>
+</html>
